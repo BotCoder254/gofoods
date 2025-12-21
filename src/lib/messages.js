@@ -1,5 +1,7 @@
 import { databases, storage, DATABASE_ID, STORAGE_BUCKET_ID, Query, client } from '../config/appwrite'
 import { ID } from 'appwrite'
+import { createNotification } from './notifications'
+import { getRequestById } from './requests'
 
 const MESSAGES_COLLECTION_ID = process.env.REACT_APP_APPWRITE_MESSAGES_COLLECTION_ID || 'messages'
 
@@ -12,12 +14,31 @@ export const createMessage = async (data) => {
     readBy: [data.senderId]
   }
 
-  return await databases.createDocument(
+  const response = await databases.createDocument(
     DATABASE_ID,
     MESSAGES_COLLECTION_ID,
     ID.unique(),
     payload
   )
+  
+  // Create notification for recipient
+  try {
+    const request = await getRequestById(data.requestId)
+    const recipientId = data.senderId === request.requesterId ? request.ownerId : request.requesterId
+    
+    await createNotification({
+      userId: recipientId,
+      type: 'message',
+      payload: {
+        requestId: data.requestId,
+        senderId: data.senderId
+      }
+    })
+  } catch (error) {
+    console.error('Error creating message notification:', error)
+  }
+  
+  return response
 }
 
 export const getMessagesByRequest = async (requestId) => {

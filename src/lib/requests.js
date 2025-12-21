@@ -1,5 +1,6 @@
 import { databases, DATABASE_ID, Query } from '../config/appwrite'
 import { ID } from 'appwrite'
+import { createNotification } from './notifications'
 
 const REQUESTS_COLLECTION_ID = process.env.REACT_APP_APPWRITE_REQUESTS_COLLECTION_ID || 'requests'
 
@@ -14,12 +15,24 @@ export const createRequest = async (data) => {
     proposedTime: data.proposedTime || null
   }
 
-  return await databases.createDocument(
+  const response = await databases.createDocument(
     DATABASE_ID,
     REQUESTS_COLLECTION_ID,
     ID.unique(),
     payload
   )
+  
+  // Create notification for owner
+  await createNotification({
+    userId: data.ownerId,
+    type: 'request',
+    payload: {
+      requestId: response.$id,
+      foodItemId: data.foodItemId
+    }
+  })
+  
+  return response
 }
 
 export const getRequestsByUser = async (userId) => {
@@ -46,13 +59,27 @@ export const getRequestsByFoodItem = async (foodItemId) => {
   return await databases.listDocuments(DATABASE_ID, REQUESTS_COLLECTION_ID, queries)
 }
 
-export const updateRequestStatus = async (requestId, status) => {
-  return await databases.updateDocument(
+export const updateRequestStatus = async (requestId, status, requestData = null) => {
+  const response = await databases.updateDocument(
     DATABASE_ID,
     REQUESTS_COLLECTION_ID,
     requestId,
     { status }
   )
+  
+  // Create notification for requester when accepted
+  if (status === 'accepted' && requestData) {
+    await createNotification({
+      userId: requestData.requesterId,
+      type: 'match',
+      payload: {
+        requestId: requestId,
+        foodItemId: requestData.foodItemId
+      }
+    })
+  }
+  
+  return response
 }
 
 export const getRequestById = async (requestId) => {

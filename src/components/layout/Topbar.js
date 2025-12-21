@@ -1,14 +1,14 @@
 import React, { useState } from 'react'
-import { Menu, Search, Bell, User, PlusCircle } from 'lucide-react'
+import { Menu, Search, User, PlusCircle } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { getAvatarUrl } from '../../lib/users'
 import { motion, AnimatePresence } from 'framer-motion'
 import CreatePostModal from '../posts/CreatePostModal'
+import NotificationDropdown from '../notifications/NotificationDropdown'
 
 const Topbar = ({ onMenuClick, onSearch }) => {
   const { user } = useAuth()
-  const [showNotifications, setShowNotifications] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreatePost, setShowCreatePost] = useState(false)
 
@@ -18,14 +18,6 @@ const Topbar = ({ onMenuClick, onSearch }) => {
       onSearch(searchQuery)
     }
   }
-
-  const notifications = [
-    { id: 1, text: 'John liked your post', time: '5m ago', unread: true },
-    { id: 2, text: 'New message from Sarah', time: '1h ago', unread: true },
-    { id: 3, text: 'Your post was shared', time: '2h ago', unread: false }
-  ]
-
-  const unreadCount = notifications.filter(n => n.unread).length
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-neutral-200 px-4 lg:px-6 py-4">
@@ -65,57 +57,7 @@ const Topbar = ({ onMenuClick, onSearch }) => {
           </button>
 
           {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="relative p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-            >
-              <Bell size={24} className="text-neutral-700" />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-5 h-5 bg-error text-white text-xs font-bold rounded-full flex items-center justify-center">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-neutral-200 overflow-hidden"
-                >
-                  <div className="p-4 border-b border-neutral-200">
-                    <h3 className="font-bold text-neutral-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                      Notifications
-                    </h3>
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {notifications.map((notif) => (
-                      <div
-                        key={notif.id}
-                        className={`p-4 border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer ${
-                          notif.unread ? 'bg-primary/5' : ''
-                        }`}
-                      >
-                        <p className="text-sm text-neutral-900">{notif.text}</p>
-                        <p className="text-xs text-neutral-500 mt-1">{notif.time}</p>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-3 text-center border-t border-neutral-200">
-                    <Link
-                      to="/notifications"
-                      className="text-sm text-primary hover:text-primary/80 font-medium"
-                    >
-                      View all notifications
-                    </Link>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <NotificationDropdown />
 
           {/* User Avatar */}
           <Link to="/profile" className="hidden sm:block flex-shrink-0">

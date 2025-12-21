@@ -35,8 +35,8 @@ const Requests = () => {
   })
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ requestId, status, foodItemId }) => {
-      await updateRequestStatus(requestId, status)
+    mutationFn: async ({ requestId, status, foodItemId, requestData }) => {
+      await updateRequestStatus(requestId, status, requestData)
       if (status === 'accepted') {
         await updateFoodItem(foodItemId, { status: 'reserved' })
       }
@@ -55,7 +55,8 @@ const Requests = () => {
     updateStatusMutation.mutate({
       requestId: request.$id,
       status: 'accepted',
-      foodItemId: request.foodItemId
+      foodItemId: request.foodItemId,
+      requestData: request
     })
   }
 
