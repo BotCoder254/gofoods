@@ -31,7 +31,6 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navItems = [
     { path: '/feed', icon: Home, label: 'Feed', badge: null },
     { path: '/map', icon: Map, label: 'Map', badge: null },
-    { path: null, icon: PlusCircle, label: 'Create Post', badge: null, highlight: true, action: () => setShowCreatePost(true) },
     { path: '/messages', icon: MessageSquare, label: 'Messages', badge: 3 },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', badge: null },
     { path: '/profile', icon: User, label: 'Profile', badge: null }
@@ -93,28 +92,6 @@ const Sidebar = ({ isOpen, onClose }) => {
               const isActive = location.pathname === item.path
               const Icon = item.icon
 
-              if (item.action) {
-                return (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      item.action()
-                      onClose()
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${
-                      item.highlight
-                        ? 'bg-accent text-white hover:bg-accent/90'
-                        : 'text-neutral-700 hover:bg-neutral-100'
-                    }`}
-                  >
-                    <Icon size={22} />
-                    <span className="font-medium" style={{ fontFamily: 'Inter, sans-serif' }}>
-                      {item.label}
-                    </span>
-                  </button>
-                )
-              }
-
               return (
                 <Link
                   key={item.path}
@@ -165,6 +142,14 @@ const Sidebar = ({ isOpen, onClose }) => {
           </button>
         </div>
       </motion.aside>
+
+      {/* Floating Create Button - Desktop & Mobile */}
+      <button
+        onClick={() => setShowCreatePost(true)}
+        className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all hover:scale-110"
+      >
+        <PlusCircle size={28} />
+      </button>
 
       {/* Create Post Modal */}
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />
