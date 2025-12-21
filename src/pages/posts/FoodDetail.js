@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowLeft, Heart, Share2, MapPin, DollarSign, Package, 
   Clock, Truck, Home, User, MessageCircle, ChevronLeft, 
-  ChevronRight, X, Tag
+  ChevronRight, X, Tag, Send
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { getFoodItemById, getFoodImageUrl } from '../../lib/foodItems'
@@ -14,6 +14,7 @@ import { Button } from '../../components/common/FormElements'
 import Loader from '../../components/common/Loader'
 import { formatDistance, calculateDistance } from '../../utils/distance'
 import { formatDate } from '../../utils/helpers'
+import RequestModal from '../../components/requests/RequestModal'
 
 const FoodDetail = () => {
   const { id } = useParams()
@@ -21,6 +22,7 @@ const FoodDetail = () => {
   const { user } = useAuth()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [showRequestModal, setShowRequestModal] = useState(false)
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['foodItem', id],
@@ -293,7 +295,12 @@ const FoodDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            <Button variant="primary" fullWidth icon={MessageCircle}>
+            <Button 
+              variant="primary" 
+              fullWidth 
+              icon={Send}
+              onClick={() => setShowRequestModal(true)}
+            >
               Request Item
             </Button>
             <Button variant="outline" icon={MessageCircle}>
@@ -351,6 +358,15 @@ const FoodDetail = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Request Modal */}
+      {item && (
+        <RequestModal
+          isOpen={showRequestModal}
+          onClose={() => setShowRequestModal(false)}
+          foodItem={item}
+        />
+      )}
     </div>
   )
 }
