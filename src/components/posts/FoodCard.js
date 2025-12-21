@@ -1,10 +1,11 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { MapPin, DollarSign, Heart, Truck, Home, Clock } from 'lucide-react'
+import { MapPin, DollarSign, Truck, Home, Clock } from 'lucide-react'
 import { getFoodImageUrl } from '../../lib/foodItems'
 import { calculateDistance, formatDistance, getTimeRemaining } from '../../utils/distance'
 import { useAuth } from '../../context/AuthContext'
+import BookmarkButton from '../bookmarks/BookmarkButton'
 
 const FoodCard = ({ item, index }) => {
   const { user } = useAuth()
@@ -55,9 +56,9 @@ const FoodCard = ({ item, index }) => {
             </div>
 
             {/* Bookmark */}
-            <button className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-all">
-              <Heart size={18} className="text-neutral-700" />
-            </button>
+            <div className="absolute top-3 right-3">
+              <BookmarkButton foodItemId={item.$id} size={18} className="bg-white/90 backdrop-blur-sm hover:bg-white" />
+            </div>
           </div>
 
           {/* Content */}

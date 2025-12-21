@@ -15,6 +15,7 @@ import Loader from '../../components/common/Loader'
 import { formatDistance, calculateDistance } from '../../utils/distance'
 import { formatDate } from '../../utils/helpers'
 import RequestModal from '../../components/requests/RequestModal'
+import BookmarkButton from '../../components/bookmarks/BookmarkButton'
 
 const FoodDetail = () => {
   const { id } = useParams()
@@ -157,9 +158,7 @@ const FoodDetail = () => {
                 {item.title}
               </h1>
               <div className="flex gap-2">
-                <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
-                  <Heart size={24} className="text-neutral-700" />
-                </button>
+                <BookmarkButton foodItemId={item.$id} size={24} />
                 <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
                   <Share2 size={24} className="text-neutral-700" />
                 </button>
