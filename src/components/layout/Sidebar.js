@@ -33,7 +33,6 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/feed', icon: Home, label: 'Feed', badge: null },
     { path: '/map', icon: Map, label: 'Map', badge: null },
     { path: '/requests', icon: ClipboardList, label: 'Requests', badge: null },
-    { path: '/messages', icon: MessageSquare, label: 'Messages', badge: 3 },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', badge: null },
     { path: '/profile', icon: User, label: 'Profile', badge: null }
   ]

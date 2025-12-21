@@ -19,6 +19,7 @@ import ProfileEdit from './pages/profile/ProfileEdit'
 import FoodDetail from './pages/posts/FoodDetail'
 import MapView from './pages/map/MapView'
 import Requests from './pages/requests/Requests'
+import Chat from './pages/messages/Chat'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -96,6 +97,7 @@ function App() {
           <Route path="food/:id" element={<FoodDetail />} />
           <Route path="map" element={<MapView />} />
           <Route path="requests" element={<Requests />} />
+          <Route path="chat/:requestId" element={<Chat />} />
           <Route path="profile/edit" element={<ProfileEdit />} />
           <Route path="map" element={<div className="text-center py-20"><h2 className="text-2xl font-bold">Map View - Coming Soon</h2></div>} />
           <Route path="create" element={<div className="text-center py-20"><h2 className="text-2xl font-bold">Create Post - Coming Soon</h2></div>} />

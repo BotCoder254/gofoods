@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Check, X, Clock, Package, MessageSquare } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Loader from '../../components/common/Loader'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const STATUS_COLORS = {
   pending: 'bg-warning/10 text-warning border-warning',
@@ -162,6 +162,7 @@ const Requests = () => {
 }
 
 const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isUpdating }) => {
+  const navigate = useNavigate()
   const { data: foodItem } = useQuery({
     queryKey: ['foodItem', request.foodItemId],
     queryFn: () => getFoodItemById(request.foodItemId)
@@ -220,15 +221,26 @@ const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isU
             </div>
           )}
 
-          {isIncoming && request.status === 'accepted' && (
-            <button
-              onClick={() => onCollected(request)}
-              disabled={isUpdating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-secondary text-white rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50"
-            >
-              <Package size={18} />
-              Mark as Collected
-            </button>
+          {request.status === 'accepted' && (
+            <div className="flex gap-2">
+              {isIncoming && (
+                <button
+                  onClick={() => onCollected(request)}
+                  disabled={isUpdating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-secondary text-white rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50"
+                >
+                  <Package size={18} />
+                  Mark as Collected
+                </button>
+              )}
+              <button
+                onClick={() => navigate(`/chat/${request.$id}`)}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all"
+              >
+                <MessageSquare size={18} />
+                Chat
+              </button>
+            </div>
           )}
         </div>
       </div>

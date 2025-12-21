@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Home, Map, MessageSquare, User } from 'lucide-react'
+import { Home, Map, ClipboardList, User } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const BottomNav = () => {
@@ -9,7 +9,7 @@ const BottomNav = () => {
   const navItems = [
     { path: '/feed', icon: Home, label: 'Feed' },
     { path: '/map', icon: Map, label: 'Map' },
-    { path: '/messages', icon: MessageSquare, label: 'Messages', badge: 3 },
+    { path: '/requests', icon: ClipboardList, label: 'Requests' },
     { path: '/profile', icon: User, label: 'Profile' }
   ]
 
