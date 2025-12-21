@@ -6,6 +6,7 @@ import BottomNav from './BottomNav'
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
 
   return (
     <div className="flex h-screen overflow-hidden bg-neutral-50">
@@ -21,11 +22,11 @@ const MainLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
+        <Topbar onMenuClick={() => setSidebarOpen(true)} onSearch={setSearchQuery} />
         
         <main className="flex-1 overflow-y-auto pb-20 lg:pb-6">
           <div className="container mx-auto px-4 py-6 max-w-7xl">
-            <Outlet />
+            <Outlet context={{ searchQuery }} />
           </div>
         </main>
 

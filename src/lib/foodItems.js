@@ -38,7 +38,7 @@ export const createFoodItem = async (data) => {
 }
 
 export const getFoodItems = async (filters = {}) => {
-  const queries = [Query.equal('status', 'active'), Query.orderDesc('createdAt'), Query.limit(50)]
+  const queries = [Query.equal('status', 'active'), Query.limit(50)]
   
   if (filters.foodType) {
     queries.push(Query.equal('foodType', filters.foodType))
