@@ -6,18 +6,12 @@ import { getAvatarUrl } from '../../lib/users'
 import { motion, AnimatePresence } from 'framer-motion'
 import CreatePostModal from '../posts/CreatePostModal'
 import NotificationDropdown from '../notifications/NotificationDropdown'
+import SearchModal from '../common/SearchModal'
 
 const Topbar = ({ onMenuClick, onSearch }) => {
   const { user } = useAuth()
-  const [searchQuery, setSearchQuery] = useState('')
   const [showCreatePost, setShowCreatePost] = useState(false)
-
-  const handleSearch = (e) => {
-    e.preventDefault()
-    if (onSearch) {
-      onSearch(searchQuery)
-    }
-  }
+  const [showSearchModal, setShowSearchModal] = useState(false)
 
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-neutral-200 px-4 lg:px-6 py-4">
@@ -32,17 +26,15 @@ const Topbar = ({ onMenuClick, onSearch }) => {
 
         {/* Search Bar */}
         <div className="flex-1 max-w-2xl">
-          <form onSubmit={handleSearch} className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for food, users, or locations..."
-              className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-neutral-200 focus:border-primary outline-none transition-all"
-              style={{ fontFamily: 'Inter, sans-serif' }}
-            />
-          </form>
+          <button
+            onClick={() => setShowSearchModal(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 border-neutral-200 hover:border-primary transition-all text-left bg-white"
+          >
+            <Search className="text-neutral-400" size={20} />
+            <span className="text-neutral-400" style={{ fontFamily: 'Inter, sans-serif' }}>
+              Search for food...
+            </span>
+          </button>
         </div>
 
         {/* Right Side Actions */}
@@ -72,6 +64,9 @@ const Topbar = ({ onMenuClick, onSearch }) => {
 
       {/* Create Post Modal */}
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />
+      
+      {/* Search Modal */}
+      <SearchModal isOpen={showSearchModal} onClose={() => setShowSearchModal(false)} />
     </header>
   )
 }

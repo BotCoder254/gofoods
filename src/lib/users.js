@@ -44,8 +44,11 @@ export const deleteAvatar = async (fileId) => {
 }
 
 export const searchUsers = async (searchTerm) => {
-  return await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
+  if (!searchTerm) return []
+  
+  const response = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
     Query.search('displayName', searchTerm),
     Query.limit(20)
   ])
+  return response.documents
 }

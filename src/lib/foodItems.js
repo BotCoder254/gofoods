@@ -80,3 +80,16 @@ export const getFoodImageUrl = (fileId, width = 400, height = 400) => {
 export const deleteFoodImage = async (fileId) => {
   return await storage.deleteFile(STORAGE_BUCKET_ID, fileId)
 }
+
+export const searchFoodItems = async (searchTerm) => {
+  if (!searchTerm) return []
+  
+  const queries = [
+    Query.equal('status', 'active'),
+    Query.search('title', searchTerm),
+    Query.limit(20)
+  ]
+  
+  const response = await databases.listDocuments(DATABASE_ID, FOODS_COLLECTION_ID, queries)
+  return response.documents
+}
