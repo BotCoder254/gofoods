@@ -30,7 +30,8 @@ export const updateUser = async (userId, data) => {
 }
 
 export const uploadAvatar = async (file) => {
-  return await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), file)
+  const response = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), file)
+  return response.$id
 }
 
 export const getAvatarUrl = (fileId) => {
