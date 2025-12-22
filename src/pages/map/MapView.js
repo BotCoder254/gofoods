@@ -19,6 +19,7 @@ const MapView = () => {
     latitude: user?.location?.lat || DEFAULT_CENTER.lat,
     zoom: DEFAULT_ZOOM
   })
+  const [mapLoaded, setMapLoaded] = useState(false)
   
   const [viewMode, setViewMode] = useState('list') // Start with list view
   const [searchQuery, setSearchQuery] = useState('')
@@ -281,15 +282,24 @@ const MapView = () => {
             <Map
               {...viewport}
               onMove={(evt) => setViewport(evt.viewState)}
+              onLoad={() => {
+                setMapLoaded(true)
+              }}
               mapStyle={MAP_STYLES.STREETS}
               mapboxAccessToken={MAPBOX_TOKEN}
               style={{ width: '100%', height: '100%' }}
+              attributionControl={false}
             >
               <NavigationControl position="top-right" />
               <GeolocateControl position="top-right" />
               
-              {filteredItems.map((item) => (
-                item.pickupAddress && (
+              {filteredItems.map((item) => {
+                const hasValidCoords = item.pickupAddress && 
+                  typeof item.pickupAddress.lat === 'number' && 
+                  typeof item.pickupAddress.lng === 'number' &&
+                  !isNaN(item.pickupAddress.lat) && !isNaN(item.pickupAddress.lng)
+                
+                return hasValidCoords ? (
                   <Marker
                     key={item.$id}
                     longitude={item.pickupAddress.lng}
@@ -303,8 +313,8 @@ const MapView = () => {
                       <MapPin size={20} />
                     </button>
                   </Marker>
-                )
-              ))}
+                ) : null
+              })}
             </Map>
 
             {/* Selected Item Popup */}

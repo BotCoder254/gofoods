@@ -12,6 +12,7 @@ const LocationPicker = ({ onSelect, onClose, initialLocation }) => {
     latitude: initialLocation?.lat || DEFAULT_CENTER.lat,
     zoom: DEFAULT_ZOOM
   })
+  const [mapLoaded, setMapLoaded] = useState(false)
   
   const [marker, setMarker] = useState(
     initialLocation ? { lng: initialLocation.lng, lat: initialLocation.lat } : null
@@ -133,14 +134,19 @@ const LocationPicker = ({ onSelect, onClose, initialLocation }) => {
             {...viewport}
             onMove={(evt) => setViewport(evt.viewState)}
             onClick={handleMapClick}
+            onLoad={() => {
+              setMapLoaded(true)
+            }}
             mapStyle={MAP_STYLES.STREETS}
             mapboxAccessToken={MAPBOX_TOKEN}
             style={{ width: '100%', height: '100%' }}
+            attributionControl={false}
           >
             <NavigationControl position="top-right" />
             <GeolocateControl position="top-right" />
             
-            {marker && (
+            {marker && typeof marker.lat === 'number' && typeof marker.lng === 'number' && 
+             !isNaN(marker.lat) && !isNaN(marker.lng) && (
               <Marker longitude={marker.lng} latitude={marker.lat}>
                 <div className="relative">
                   <MapPin size={40} className="text-primary fill-primary/20" />

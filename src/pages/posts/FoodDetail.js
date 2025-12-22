@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowLeft, Heart, Share2, MapPin, DollarSign, Package, 
   Clock, Truck, Home, User, MessageCircle, ChevronLeft, 
-  ChevronRight, X, Tag, Send, MoreVertical, Edit, Trash2, AlertTriangle
+  ChevronRight, X, Tag, Send, MoreVertical, Edit, Trash2, AlertTriangle,
+  Info, Navigation2
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getFoodItemById, getFoodImageUrl, deleteFoodItem, updateFoodItem } from '../../lib/foodItems'
@@ -18,6 +19,7 @@ import { formatDate } from '../../utils/helpers'
 import RequestModal from '../../components/requests/RequestModal'
 import CreatePostModal from '../../components/posts/CreatePostModal'
 import BookmarkButton from '../../components/bookmarks/BookmarkButton'
+import LocationRouteTab from '../../components/map/LocationRouteTab'
 import { toast } from 'react-toastify'
 
 const FoodDetail = () => {
@@ -31,6 +33,7 @@ const FoodDetail = () => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showOptionsMenu, setShowOptionsMenu] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [activeTab, setActiveTab] = useState('details')
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['foodItem', id],
@@ -144,6 +147,40 @@ const FoodDetail = () => {
         <span className="font-medium">Back to Feed</span>
       </motion.button>
 
+      {/* Tab Navigation */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex gap-2 mb-6 overflow-x-auto pb-2"
+      >
+        <button
+          onClick={() => setActiveTab('details')}
+          className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all whitespace-nowrap ${
+            activeTab === 'details'
+              ? 'bg-primary text-white shadow-lg'
+              : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50'
+          }`}
+        >
+          <Info size={18} />
+          <span>Details</span>
+        </button>
+        {item.pickupAddress && item.pickupAddress.lat && item.pickupAddress.lng && (
+          <button
+            onClick={() => setActiveTab('location')}
+            className={`flex items-center gap-2 px-4 md:px-6 py-2.5 md:py-3 rounded-xl font-medium transition-all whitespace-nowrap ${
+              activeTab === 'location'
+                ? 'bg-primary text-white shadow-lg'
+                : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50'
+            }`}
+          >
+            <Navigation2 size={18} />
+            <span>Location & Route</span>
+          </button>
+        )}
+      </motion.div>
+
+      {/* Details Tab */}
+      {activeTab === 'details' && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column - Images */}
         <motion.div
@@ -395,13 +432,23 @@ const FoodDetail = () => {
           )}
 
           {/* Location */}
-          {item.pickupAddress && (
+          {item.pickupAddress && item.pickupAddress.placeName && (
             <div>
               <h3 className="font-bold text-lg mb-2 flex items-center gap-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
                 <MapPin size={20} className="text-primary" />
                 Location
               </h3>
-              <p className="text-neutral-700">{item.pickupAddress.placeName}</p>
+              <button
+                onClick={() => {
+                  if (item.pickupAddress?.lat && item.pickupAddress?.lng) {
+                    const url = `https://www.google.com/maps/dir/?api=1&destination=${item.pickupAddress.lat},${item.pickupAddress.lng}`
+                    window.open(url, '_blank')
+                  }
+                }}
+                className="text-primary hover:text-primary/80 underline text-left transition-colors"
+              >
+                {item.pickupAddress.placeName}
+              </button>
             </div>
           )}
 
@@ -438,6 +485,21 @@ const FoodDetail = () => {
           </div>
         </motion.div>
       </div>
+      )}
+
+      {/* Location & Route Tab */}
+      {activeTab === 'location' && item.pickupAddress && item.pickupAddress.lat && item.pickupAddress.lng && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-5xl mx-auto"
+        >
+          <LocationRouteTab 
+            foodItem={item} 
+            enableTracking={user?.$id !== item.ownerId && activeRequests?.documents?.some(r => r.status === 'accepted')}
+          />
+        </motion.div>
+      )}
 
       {/* Image Modal */}
       <AnimatePresence>
