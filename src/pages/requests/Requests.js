@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getRequestsByOwner, getRequestsByUser, updateRequestStatus } from '../../lib/requests'
 import { getFoodItemById, updateFoodItem } from '../../lib/foodItems'
+import { getUserById } from '../../lib/users'
 import { useAuth } from '../../context/AuthContext'
-import { Check, X, Clock, Package, MessageSquare } from 'lucide-react'
+import { Check, X, Clock, Package, MessageSquare, Navigation2, Info } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Loader from '../../components/common/Loader'
 import { Link, useNavigate } from 'react-router-dom'
+import RequestConfirmationModal from '../../components/requests/RequestConfirmationModal'
+import LocationRouteTab from '../../components/map/LocationRouteTab'
 
 const STATUS_COLORS = {
   pending: 'bg-warning/10 text-warning border-warning',
@@ -51,13 +54,21 @@ const Requests = () => {
     }
   })
 
+  const [confirmModalData, setConfirmModalData] = useState(null)
+
   const handleAccept = (request) => {
+    setConfirmModalData(request)
+  }
+
+  const handleConfirmAccept = () => {
+    if (!confirmModalData) return
     updateStatusMutation.mutate({
-      requestId: request.$id,
+      requestId: confirmModalData.$id,
       status: 'accepted',
-      foodItemId: request.foodItemId,
-      requestData: request
+      foodItemId: confirmModalData.foodItemId,
+      requestData: confirmModalData
     })
+    setConfirmModalData(null)
   }
 
   const handleReject = (request) => {
@@ -158,12 +169,49 @@ const Requests = () => {
           </p>
         </motion.div>
       )}
+
+      {/* Confirmation Modal */}
+      {confirmModalData && (
+        <ConfirmationModalWrapper
+          request={confirmModalData}
+          onClose={() => setConfirmModalData(null)}
+          onConfirm={handleConfirmAccept}
+          isUpdating={updateStatusMutation.isPending}
+        />
+      )}
     </div>
+  )
+}
+
+const ConfirmationModalWrapper = ({ request, onClose, onConfirm, isUpdating }) => {
+  const { data: foodItem } = useQuery({
+    queryKey: ['foodItem', request.foodItemId],
+    queryFn: () => getFoodItemById(request.foodItemId)
+  })
+
+  const { data: requesterProfile } = useQuery({
+    queryKey: ['user', request.requesterId],
+    queryFn: () => getUserById(request.requesterId)
+  })
+
+  if (!foodItem || !requesterProfile) return null
+
+  return (
+    <RequestConfirmationModal
+      isOpen={true}
+      onClose={onClose}
+      onConfirm={onConfirm}
+      request={request}
+      foodItem={foodItem}
+      requesterProfile={requesterProfile}
+      loading={isUpdating}
+    />
   )
 }
 
 const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isUpdating }) => {
   const navigate = useNavigate()
+  const [activeTab, setActiveTab] = useState('details')
   const { data: foodItem, isError } = useQuery({
     queryKey: ['foodItem', request.foodItemId],
     queryFn: () => getFoodItemById(request.foodItemId),
@@ -172,81 +220,143 @@ const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isU
 
   if (isError || !foodItem) return null
 
+  const showLocationTab = request.status === 'accepted' && foodItem.pickupAddress?.lat && foodItem.pickupAddress?.lng
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl border border-neutral-200 p-6 hover:shadow-md transition-shadow"
+      className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-shadow"
     >
-      <div className="flex items-start gap-4">
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <Link to={`/food/${foodItem.$id}`} className="font-bold text-neutral-900 hover:text-primary">
-                {foodItem.title}
-              </Link>
-              <p className="text-sm text-neutral-600 mt-1">
-                {request.pickupOrDelivery === 'pickup' ? '📍 Pickup' : '🚚 Delivery'}
-                {request.proposedTime && ` • ${new Date(request.proposedTime).toLocaleString()}`}
-              </p>
-            </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[request.status]}`}>
-              {request.status}
-            </span>
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div>
+            <Link to={`/food/${foodItem.$id}`} className="font-bold text-neutral-900 hover:text-primary">
+              {foodItem.title}
+            </Link>
+            <p className="text-sm text-neutral-600 mt-1">
+              {request.pickupOrDelivery === 'pickup' ? '📍 Pickup' : '🚚 Delivery'}
+              {request.proposedTime && ` • ${new Date(request.proposedTime).toLocaleString()}`}
+            </p>
           </div>
-
-          {request.message && (
-            <div className="p-3 bg-neutral-50 rounded-lg mb-3">
-              <p className="text-sm text-neutral-700">{request.message}</p>
-            </div>
-          )}
-
-          {/* Actions */}
-          {isIncoming && request.status === 'pending' && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => onAccept(request)}
-                disabled={isUpdating}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50"
-              >
-                <Check size={18} />
-                Accept
-              </button>
-              <button
-                onClick={() => onReject(request)}
-                disabled={isUpdating}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-error text-white rounded-xl hover:bg-error/90 transition-all disabled:opacity-50"
-              >
-                <X size={18} />
-                Reject
-              </button>
-            </div>
-          )}
-
-          {request.status === 'accepted' && (
-            <div className="flex gap-2">
-              {isIncoming && (
-                <button
-                  onClick={() => onCollected(request)}
-                  disabled={isUpdating}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-secondary text-white rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50"
-                >
-                  <Package size={18} />
-                  Mark as Collected
-                </button>
-              )}
-              <button
-                onClick={() => navigate(`/chat/${request.$id}`)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all"
-              >
-                <MessageSquare size={18} />
-                Chat
-              </button>
-            </div>
-          )}
+          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[request.status]}`}>
+            {request.status}
+          </span>
         </div>
+
+        {request.message && (
+          <div className="p-3 bg-neutral-50 rounded-lg mb-3">
+            <p className="text-sm text-neutral-700">{request.message}</p>
+          </div>
+        )}
+
+        {/* Tab Navigation for Accepted Requests */}
+        {showLocationTab && (
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                activeTab === 'details'
+                  ? 'bg-primary text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+              }`}
+            >
+              <Info size={16} />
+              Details
+            </button>
+            <button
+              onClick={() => setActiveTab('location')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all text-sm ${
+                activeTab === 'location'
+                  ? 'bg-primary text-white'
+                  : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+              }`}
+            >
+              <Navigation2 size={16} />
+              Location & Route
+            </button>
+          </div>
+        )}
+
+        {/* Details Tab */}
+        {activeTab === 'details' && (
+          <>
+            {/* Actions */}
+            {isIncoming && request.status === 'pending' && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  onClick={() => onAccept(request)}
+                  disabled={isUpdating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50 text-sm sm:text-base"
+                >
+                  <Check size={18} />
+                  Accept
+                </button>
+                <button
+                  onClick={() => onReject(request)}
+                  disabled={isUpdating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-error text-white rounded-xl hover:bg-error/90 transition-all disabled:opacity-50 text-sm sm:text-base"
+                >
+                  <X size={18} />
+                  Reject
+                </button>
+              </div>
+            )}
+
+            {request.status === 'accepted' && (
+              <div className="flex flex-col sm:flex-row gap-2">
+                {isIncoming && (
+                  <button
+                    onClick={() => onCollected(request)}
+                    disabled={isUpdating}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary text-white rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50 text-sm sm:text-base"
+                  >
+                    <Package size={18} />
+                    Mark as Collected
+                  </button>
+                )}
+                <button
+                  onClick={() => navigate(`/chat/${request.$id}`)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all text-sm sm:text-base"
+                >
+                  <MessageSquare size={18} />
+                  Chat
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Location & Route Tab */}
+        {activeTab === 'location' && showLocationTab && (
+          <LocationRouteTabWrapper 
+            request={request}
+            foodItem={foodItem}
+            isIncoming={isIncoming}
+          />
+        )}
       </div>
     </motion.div>
+  )
+}
+
+const LocationRouteTabWrapper = ({ request, foodItem, isIncoming }) => {
+  const { data: requesterProfile } = useQuery({
+    queryKey: ['user', request.requesterId],
+    queryFn: () => getUserById(request.requesterId)
+  })
+
+  return (
+    <div className="-mx-6 -mb-6 mt-4">
+      <div className="p-6 bg-neutral-50">
+        <LocationRouteTab 
+          foodItem={foodItem}
+          requesterLocation={requesterProfile?.location}
+          enableTracking={true}
+          isOwner={isIncoming}
+        />
+      </div>
+    </div>
   )
 }
 

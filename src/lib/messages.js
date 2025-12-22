@@ -10,8 +10,8 @@ export const createMessage = async (data) => {
     requestId: data.requestId,
     senderId: data.senderId,
     text: data.text || '',
-    attachments: data.attachments || [],
-    readBy: [data.senderId]
+    attachments: JSON.stringify(data.attachments || []),
+    readBy: JSON.stringify([data.senderId])
   }
 
   const response = await databases.createDocument(
@@ -46,12 +46,21 @@ export const getMessagesByRequest = async (requestId) => {
     Query.equal('requestId', requestId),
     Query.limit(100)
   ]
-  return await databases.listDocuments(DATABASE_ID, MESSAGES_COLLECTION_ID, queries)
+  const response = await databases.listDocuments(DATABASE_ID, MESSAGES_COLLECTION_ID, queries)
+  
+  return {
+    ...response,
+    documents: response.documents.map(msg => ({
+      ...msg,
+      attachments: typeof msg.attachments === 'string' ? JSON.parse(msg.attachments || '[]') : (msg.attachments || []),
+      readBy: typeof msg.readBy === 'string' ? JSON.parse(msg.readBy || '[]') : (msg.readBy || [])
+    }))
+  }
 }
 
 export const markMessageAsRead = async (messageId, userId) => {
   const message = await databases.getDocument(DATABASE_ID, MESSAGES_COLLECTION_ID, messageId)
-  const readBy = message.readBy || []
+  const readBy = typeof message.readBy === 'string' ? JSON.parse(message.readBy || '[]') : (message.readBy || [])
   
   if (!readBy.includes(userId)) {
     readBy.push(userId)
@@ -59,7 +68,7 @@ export const markMessageAsRead = async (messageId, userId) => {
       DATABASE_ID,
       MESSAGES_COLLECTION_ID,
       messageId,
-      { readBy }
+      { readBy: JSON.stringify(readBy) }
     )
   }
   

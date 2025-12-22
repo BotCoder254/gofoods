@@ -29,6 +29,9 @@ const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout } = useAuth()
   const [showCreatePost, setShowCreatePost] = useState(false)
 
+  // Hide floating button on chat pages
+  const isChatPage = location.pathname.startsWith('/chat')
+
   const navItems = [
     { path: '/feed', icon: Home, label: 'Feed', badge: null },
     { path: '/map', icon: Map, label: 'Map', badge: null },
@@ -145,12 +148,14 @@ const Sidebar = ({ isOpen, onClose }) => {
       </motion.aside>
 
       {/* Floating Create Button - Desktop & Mobile */}
-      <button
-        onClick={() => setShowCreatePost(true)}
-        className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all hover:scale-110"
-      >
-        <PlusCircle size={28} />
-      </button>
+      {!isChatPage && (
+        <button
+          onClick={() => setShowCreatePost(true)}
+          className="fixed bottom-24 lg:bottom-8 right-6 w-14 h-14 lg:w-16 lg:h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-40 transition-all hover:scale-110"
+        >
+          <PlusCircle size={24} className="lg:w-7 lg:h-7" />
+        </button>
+      )}
 
       {/* Create Post Modal */}
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />

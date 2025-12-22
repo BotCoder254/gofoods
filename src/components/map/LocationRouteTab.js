@@ -10,7 +10,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN
 
-const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
+const LocationRouteTab = ({ foodItem, requesterLocation = null, enableTracking = false, isOwner = false }) => {
   const { user } = useAuth()
   
   // Log token status for debugging
@@ -48,9 +48,11 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
     !isNaN(foodItem.pickupAddress.lat) && 
     !isNaN(foodItem.pickupAddress.lng)
 
-  // Get user's current location
+  // Get user's current location or use requester location if provided
   useEffect(() => {
-    if (user?.location) {
+    if (requesterLocation) {
+      setUserLocation({ lat: requesterLocation.lat, lng: requesterLocation.lng })
+    } else if (user?.location) {
       setUserLocation({ lat: user.location.lat, lng: user.location.lng })
     } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -60,11 +62,14 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
             lng: position.coords.longitude
           })
         },
-        (error) => console.error('Error getting location:', error),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        (error) => {
+          console.warn('Location error:', error.code, error.message)
+          // Silently fail - map will work without user location
+        },
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
       )
     }
-  }, [user])
+  }, [user, requesterLocation])
 
   // Fetch route when user location is available and map is loaded
   useEffect(() => {
@@ -115,7 +120,7 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
 
   // Watch user's position for continuous tracking (for food owners)
   useEffect(() => {
-    if (!ownerTrackingEnabled || user?.$id !== foodItem.ownerId) return
+    if (!ownerTrackingEnabled || !isOwner || user?.$id !== foodItem.ownerId) return
 
     if (navigator.geolocation) {
       watchIdRef.current = navigator.geolocation.watchPosition(
@@ -129,10 +134,14 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
           setTrackingActive(true)
         },
         (error) => {
-          console.error('Error watching position:', error)
-          toast.error('Unable to access location')
+          console.warn('Location tracking error:', error.code, error.message)
+          // Silently handle all errors - no toast notifications
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        { 
+          enableHighAccuracy: false, // Use less accurate but faster positioning
+          timeout: 10000, 
+          maximumAge: 30000 // Allow cached positions up to 30 seconds old
+        }
       )
     }
 
@@ -141,11 +150,11 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
         navigator.geolocation.clearWatch(watchIdRef.current)
       }
     }
-  }, [ownerTrackingEnabled, user?.$id, foodItem.ownerId])
+  }, [ownerTrackingEnabled, user?.$id, foodItem.ownerId, isOwner])
 
   // Update live location to database periodically
   useEffect(() => {
-    if (!liveLocation || !ownerTrackingEnabled || user?.$id !== foodItem.ownerId) return
+    if (!liveLocation || !ownerTrackingEnabled || !isOwner || user?.$id !== foodItem.ownerId) return
 
     const updateLocation = async () => {
       try {
@@ -293,11 +302,11 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
   return (
     <div className="space-y-3 md:space-y-4">
       {/* Owner Tracking Control */}
-      {user?.$id === foodItem.ownerId && (
+      {isOwner && user?.$id === foodItem.ownerId && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl p-4 border border-primary/20"
+          className="bg-primary/10 rounded-xl p-4 border border-primary/20"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -306,7 +315,7 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
               </div>
               <div>
                 <div className="font-bold text-neutral-900 text-sm md:text-base">Live Location Tracking</div>
-                <div className="text-xs md:text-sm text-neutral-600">Share your real-time location with requesters</div>
+                <div className="text-xs md:text-sm text-neutral-600">Share your real-time location with requester</div>
               </div>
             </div>
             <button
@@ -379,17 +388,22 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
           <NavigationControl position="top-right" />
           <GeolocateControl position="top-right" />
 
-          {/* User Location Marker */}
+          {/* User/Requester Location Marker */}
           {hasValidUserLocation && (
             <Marker
               latitude={userLocation.lat}
               longitude={userLocation.lng}
               anchor="bottom"
             >
-              <div className="relative">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 200 }}
+                className="relative"
+              >
                 <div className="absolute -inset-2 bg-secondary/30 rounded-full animate-ping" />
                 <div className="relative w-4 h-4 bg-secondary rounded-full border-2 border-white shadow-lg" />
-              </div>
+              </motion.div>
             </Marker>
           )}
 
@@ -446,24 +460,39 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
 
       {/* Location Details */}
       <div className="bg-neutral-50 rounded-lg md:rounded-xl p-3 md:p-4">
-        <div className="flex items-start gap-2 md:gap-3">
-          <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg">
-            <MapPin size={18} className="text-primary md:w-5 md:h-5" />
+        <div className="space-y-3">
+          <div className="flex items-start gap-2 md:gap-3">
+            <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg">
+              <MapPin size={18} className="text-primary md:w-5 md:h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-sm md:text-base text-neutral-900 mb-0.5 md:mb-1">Pickup Location</div>
+              <button
+                onClick={openInMaps}
+                className="text-xs md:text-sm text-primary hover:text-primary/80 underline text-left transition-colors"
+              >
+                {foodItem.pickupAddress?.placeName || 'View on map'}
+              </button>
+              {routeInfo && (
+                <div className="text-[10px] md:text-xs text-neutral-600 mt-1 md:mt-2">
+                  Approximately {routeInfo.distance} km away • {routeInfo.duration} min drive
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex-1">
-            <div className="font-bold text-sm md:text-base text-neutral-900 mb-0.5 md:mb-1">Pickup Location</div>
-            <button
-              onClick={openInMaps}
-              className="text-xs md:text-sm text-primary hover:text-primary/80 underline text-left transition-colors"
-            >
-              {foodItem.pickupAddress?.placeName || 'View on map'}
-            </button>
-            {routeInfo && (
-              <div className="text-[10px] md:text-xs text-neutral-600 mt-1 md:mt-2">
-                Approximately {routeInfo.distance} km away • {routeInfo.duration} min drive
+          {requesterLocation && (
+            <div className="flex items-start gap-2 md:gap-3 pt-3 border-t border-neutral-200">
+              <div className="p-1.5 md:p-2 bg-secondary/10 rounded-lg">
+                <MapPin size={18} className="text-secondary md:w-5 md:h-5" />
               </div>
-            )}
-          </div>
+              <div className="flex-1">
+                <div className="font-bold text-sm md:text-base text-neutral-900 mb-0.5 md:mb-1">Requester Location</div>
+                <div className="text-xs md:text-sm text-neutral-600">
+                  {requesterLocation.placeName || 'Location available'}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

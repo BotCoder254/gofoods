@@ -495,8 +495,10 @@ const FoodDetail = () => {
           className="max-w-5xl mx-auto"
         >
           <LocationRouteTab 
-            foodItem={item} 
-            enableTracking={user?.$id !== item.ownerId && activeRequests?.documents?.some(r => r.status === 'accepted')}
+            foodItem={item}
+            requesterLocation={user?.location}
+            enableTracking={true}
+            isOwner={user?.$id === item.ownerId}
           />
         </motion.div>
       )}
