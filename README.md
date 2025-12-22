@@ -19,6 +19,67 @@
 
 ---
 
+## 📸 Screenshots
+
+<div align="center">
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-00-20.png" alt="Map view" />
+      <p align="center"><b>Map View</b></p>
+    </td>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-00-34.png" alt="Feed View" />
+      <p align="center"><b>Food Feed</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-01-59.png" alt="User Profile" />
+      <p align="center"><b>User Profile</b></p>
+    </td>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-02-07.png" alt="Notification" />
+      <p align="center"><b>Notification Panel</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-02-20.png" alt="Request"/>
+      <p align="center"><b>Request Page</b></p>
+    </td>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-02-44.png" alt="Food detailpage" />
+      <p align="center"><b>Details Page</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-03-44.png" alt="Handoff Point" />
+      <p align="center"><b>Handoff point</b></p>
+    </td>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-04-45.png" alt="Create Food" />
+      <p align="center"><b>Create Food</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-05-08.png" alt="Create Account" />
+      <p align="center"><b>Create Account</b></p>
+    </td>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-05-12.png" alt="siginig page" />
+      <p align="center"><b>Signing Page</b></p>
+    </td>
+  </tr>
+</table>
+
+</div>
+
+---
+
 ## 📋 Table of Contents
 
 - [About](#-about)
@@ -26,7 +87,6 @@
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
-- [Screenshots](#-screenshots)
 - [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
 - [License](#-license)
@@ -297,26 +357,6 @@ gofoods/
 
 ---
 
-## 📸 Screenshots
-
-<div align="center">
-
-### Feed View
-![Feed](https://via.placeholder.com/800x500/FF5136/FFFFFF?text=Feed+View)
-
-### Map View with Live Tracking
-![Map](https://via.placeholder.com/800x500/3B82F6/FFFFFF?text=Map+View)
-
-### Route Replay
-![Route Replay](https://via.placeholder.com/800x500/10B981/FFFFFF?text=Route+Replay)
-
-### User Profile
-![Profile](https://via.placeholder.com/800x500/F59E0B/FFFFFF?text=User+Profile)
-
-</div>
-
----
-
 ## 🗺️ Roadmap
 
 ### ✅ Completed
@@ -345,8 +385,7 @@ gofoods/
 - [ ] Dietary Preferences & Filters
 - [ ] Multi-language Support
 - [ ] Dark Mode
-- [ ] Progressive Web App (PWA)
-- [ ] Mobile Apps (iOS & Android)
+
 
 ---
 
@@ -378,11 +417,10 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Contact
 
-**Project Maintainer** - [@yourusername](https://twitter.com/yourusername)
 
-**Project Link** - [https://github.com/yourusername/gofoods](https://github.com/yourusername/gofoods)
+**Project Link** - [https://github.com/BotCoder254/gofoods](https://github.com/yourusername/gofoods)
 
-**Email** - support@gofoods.com
+**Email** - telvivaztelvin@gmail.com
 
 ---
 
@@ -400,7 +438,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 <div align="center">
 
-**Made with ❤️ by the GoFoods Team**
+**Made with ❤️ by Telvin Teum**
 
 ⭐ Star us on GitHub — it helps!
 
