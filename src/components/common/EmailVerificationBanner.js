@@ -8,6 +8,20 @@ import { toast } from 'react-toastify'
 const EmailVerificationBanner = ({ user, onVerified }) => {
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(false)
+  const [isVerified, setIsVerified] = useState(false)
+  
+  React.useEffect(() => {
+    const checkVerification = async () => {
+      try {
+        const session = await account.get()
+        setIsVerified(session.emailVerification)
+      } catch (error) {
+        console.error('Error checking verification:', error)
+        setIsVerified(false)
+      }
+    }
+    checkVerification()
+  }, [])
 
   const handleResendVerification = async () => {
     setLoading(true)
@@ -26,8 +40,9 @@ const EmailVerificationBanner = ({ user, onVerified }) => {
     try {
       const session = await account.get()
       if (session.emailVerification) {
+        setIsVerified(true)
         toast.success('Email verified successfully!')
-        onVerified()
+        if (onVerified) onVerified()
       } else {
         toast.info('Email not verified yet. Please check your inbox.')
       }
@@ -37,21 +52,6 @@ const EmailVerificationBanner = ({ user, onVerified }) => {
       setChecking(false)
     }
   }
-
-  // Check if email is verified from Appwrite session
-  const [isVerified, setIsVerified] = useState(false)
-  
-  React.useEffect(() => {
-    const checkVerification = async () => {
-      try {
-        const session = await account.get()
-        setIsVerified(session.emailVerification)
-      } catch (error) {
-        console.error('Error checking verification:', error)
-      }
-    }
-    checkVerification()
-  }, [])
 
   if (isVerified) return null
 
