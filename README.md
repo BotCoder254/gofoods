@@ -13,7 +13,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.19-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Mapbox](https://img.shields.io/badge/Mapbox-3.17.0-000000?style=for-the-badge&logo=mapbox&logoColor=white)](https://www.mapbox.com/)
 
-[Live Demo](#) • [Documentation](#) • [Report Bug](#) • [Request Feature](#)
+[Live Demo](https://gofoods-pi.vercel.app/) • [Documentation](https://github.com/BotCoder254/gofoods/issues) • [Report Bug](https://github.com/BotCoder254/gofoods/issues) • [Request Feature](https://github.com/BotCoder254/gofoods/issues)
 
 </div>
 
@@ -442,6 +442,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ⭐ Star us on GitHub — it helps!
 
-[Website](#) • [Documentation](#) • [Twitter](#) • [Discord](#)
+[Website](https://gofoods-pi.vercel.app/) 
 
 </div>
