@@ -23,6 +23,9 @@ import Requests from './pages/requests/Requests'
 import Chat from './pages/messages/Chat'
 import Bookmarks from './pages/bookmarks/Bookmarks'
 import TrackingPage from './pages/tracking/TrackingPage'
+import SharedTripView from './pages/shared/SharedTripView'
+import DeliveryHistory from './pages/history/DeliveryHistory'
+import RouteReplay from './pages/history/RouteReplay'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -85,6 +88,7 @@ function App() {
           }
         />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/shared-trip/:shareToken" element={<SharedTripView />} />
 
         {/* Protected Routes */}
         <Route
@@ -103,6 +107,8 @@ function App() {
           <Route path="tracking/:requestId" element={<TrackingPage />} />
           <Route path="chat/:requestId" element={<Chat />} />
           <Route path="bookmarks" element={<Bookmarks />} />
+          <Route path="history" element={<DeliveryHistory />} />
+          <Route path="history/route/:requestId" element={<RouteReplay />} />
           <Route path="profile" element={<Profile />} />
           <Route path="profile/edit" element={<ProfileEdit />} />
         </Route>

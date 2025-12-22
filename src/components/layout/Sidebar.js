@@ -16,7 +16,8 @@ import {
   LogOut,
   Settings,
   Popcorn,
-  ClipboardList
+  ClipboardList,
+  History
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getAvatarUrl } from '../../lib/users'
@@ -33,6 +34,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/feed', icon: Home, label: 'Feed', badge: null },
     { path: '/map', icon: Map, label: 'Map', badge: null },
     { path: '/requests', icon: ClipboardList, label: 'Requests', badge: null },
+    { path: '/history', icon: History, label: 'History', badge: null },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', badge: null },
     { path: '/profile', icon: User, label: 'Profile', badge: null }
   ]

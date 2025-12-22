@@ -518,7 +518,9 @@ const FoodDetail = () => {
         >
           <LocationRouteTab 
             foodItem={item} 
-            enableTracking={user?.$id !== item.ownerId && activeRequests?.documents?.some(r => r.status === 'accepted')}
+            enableTracking={true}
+            requestId={activeRequests?.documents?.find(r => r.status === 'accepted')?.$id}
+            activeRequest={activeRequests?.documents?.find(r => r.status === 'accepted')}
           />
         </motion.div>
       )}

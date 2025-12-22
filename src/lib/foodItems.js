@@ -92,12 +92,28 @@ export const getFoodItemById = async (itemId) => {
       pickupAddress = null
     }
   }
+
+  // Parse liveLocation with better error handling
+  let liveLocation = null
+  if (item.liveLocation) {
+    try {
+      if (typeof item.liveLocation === 'string') {
+        liveLocation = JSON.parse(item.liveLocation)
+      } else {
+        liveLocation = item.liveLocation
+      }
+    } catch (error) {
+      console.error('Error parsing liveLocation:', error, item.liveLocation)
+      liveLocation = null
+    }
+  }
   
   return {
     ...item,
     images: typeof item.images === 'string' ? JSON.parse(item.images || '[]') : (item.images || []),
     tags: typeof item.tags === 'string' ? JSON.parse(item.tags || '[]') : (item.tags || []),
-    pickupAddress
+    pickupAddress,
+    liveLocation
   }
 }
 

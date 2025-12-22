@@ -1,28 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Map, Marker, Source, Layer, NavigationControl, GeolocateControl } from 'react-map-gl/mapbox'
-import { MapPin, Navigation, Clock, TrendingUp, Loader as LoaderIcon, Radio } from 'lucide-react'
+import { MapPin, Navigation, Clock, TrendingUp, Loader as LoaderIcon, Radio, Share2, Copy, Check, Shield } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { client, DATABASE_ID, FOODS_COLLECTION_ID } from '../../config/appwrite'
 import { updateLiveLocation, clearLiveLocation } from '../../lib/foodItems'
+import { enableTripSharing, disableTripSharing, saveRouteSnapshot } from '../../lib/requests'
 import { toast } from 'react-toastify'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN
 
-const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
+const LocationRouteTab = ({ foodItem, enableTracking = false, requestId = null, activeRequest = null }) => {
   const { user } = useAuth()
   
-  // Log token status for debugging
   if (!MAPBOX_TOKEN) {
     console.error('Mapbox token is missing! Please check your .env file.')
   }
   
-  // Validate and set initial coordinates
   const initialLat = foodItem.pickupAddress?.lat || 40.7128
   const initialLng = foodItem.pickupAddress?.lng || -74.0060
   
-  // All hooks must be called before any conditional returns
   const [viewport, setViewport] = useState({
     latitude: initialLat,
     longitude: initialLng,
@@ -36,19 +34,20 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
   const [liveLocation, setLiveLocation] = useState(null)
   const [trackingActive, setTrackingActive] = useState(false)
   const [ownerTrackingEnabled, setOwnerTrackingEnabled] = useState(false)
+  const [tripSharingEnabled, setTripSharingEnabled] = useState(false)
+  const [shareLink, setShareLink] = useState('')
+  const [copied, setCopied] = useState(false)
   const mapRef = useRef()
   const watchIdRef = useRef(null)
   const unsubscribeRef = useRef(null)
   const updateIntervalRef = useRef(null)
 
-  // Check if location is valid
   const hasValidLocation = foodItem.pickupAddress && 
     typeof foodItem.pickupAddress.lat === 'number' && 
     typeof foodItem.pickupAddress.lng === 'number' &&
     !isNaN(foodItem.pickupAddress.lat) && 
     !isNaN(foodItem.pickupAddress.lng)
 
-  // Get user's current location
   useEffect(() => {
     if (user?.location) {
       setUserLocation({ lat: user.location.lat, lng: user.location.lng })
@@ -60,34 +59,42 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
             lng: position.coords.longitude
           })
         },
-        (error) => console.error('Error getting location:', error),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        (error) => {
+          console.error('High accuracy location failed:', error)
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setUserLocation({
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+              })
+            },
+            (err) => {
+              console.error('Location error:', err)
+              toast.error('Unable to get your location. Please enable location services.')
+            },
+            { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+          )
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
       )
     }
-  }, [user])
+  }, [user, foodItem])
 
-  // Fetch route when user location is available and map is loaded
   useEffect(() => {
     if (userLocation && foodItem.pickupAddress && mapLoaded) {
       fetchRoute(userLocation, foodItem.pickupAddress)
     }
   }, [userLocation, foodItem.pickupAddress, mapLoaded])
 
-  // Update route when live location changes significantly
   useEffect(() => {
-    if (userLocation && liveLocation && trackingActive) {
-      const distance = calculateDistanceBetweenPoints(userLocation, liveLocation)
-      if (distance > 0.5) { // Refetch if moved more than 500m
-        fetchRoute(userLocation, liveLocation)
-      }
+    if (userLocation && liveLocation && trackingActive && mapLoaded) {
+      fetchRoute(userLocation, liveLocation)
     }
-  }, [liveLocation, trackingActive])
+  }, [liveLocation, trackingActive, mapLoaded])
 
-  // Real-time tracking using Appwrite realtime and Geolocation API
   useEffect(() => {
     if (!enableTracking || !foodItem.$id) return
 
-    // Subscribe to food item updates for live location
     const unsubscribe = client.subscribe(
       `databases.${DATABASE_ID}.collections.${FOODS_COLLECTION_ID}.documents.${foodItem.$id}`,
       (response) => {
@@ -113,7 +120,6 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
     }
   }, [enableTracking, foodItem.$id])
 
-  // Watch user's position for continuous tracking (for food owners)
   useEffect(() => {
     if (!ownerTrackingEnabled || user?.$id !== foodItem.ownerId) return
 
@@ -130,9 +136,27 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
         },
         (error) => {
           console.error('Error watching position:', error)
-          toast.error('Unable to access location')
+          if (watchIdRef.current) {
+            navigator.geolocation.clearWatch(watchIdRef.current)
+          }
+          watchIdRef.current = navigator.geolocation.watchPosition(
+            (position) => {
+              const newLocation = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude,
+                timestamp: position.timestamp
+              }
+              setLiveLocation(newLocation)
+              setTrackingActive(true)
+            },
+            (err) => {
+              console.error('Low accuracy tracking failed:', err)
+              toast.error('Unable to track location. Please check location permissions.')
+            },
+            { enableHighAccuracy: false, timeout: 15000, maximumAge: 30000 }
+          )
         },
-        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
       )
     }
 
@@ -143,29 +167,31 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
     }
   }, [ownerTrackingEnabled, user?.$id, foodItem.ownerId])
 
-  // Update live location to database periodically
   useEffect(() => {
     if (!liveLocation || !ownerTrackingEnabled || user?.$id !== foodItem.ownerId) return
 
     const updateLocation = async () => {
       try {
         await updateLiveLocation(foodItem.$id, liveLocation)
+        
+        if (requestId && activeRequest?.status === 'accepted') {
+          await saveRouteSnapshot(requestId, liveLocation)
+        }
       } catch (error) {
         console.error('Error updating live location:', error)
       }
     }
 
     updateLocation()
-    updateIntervalRef.current = setInterval(updateLocation, 10000) // Update every 10 seconds
+    updateIntervalRef.current = setInterval(updateLocation, 10000)
 
     return () => {
       if (updateIntervalRef.current) {
         clearInterval(updateIntervalRef.current)
       }
     }
-  }, [liveLocation, ownerTrackingEnabled, user?.$id, foodItem.ownerId, foodItem.$id])
+  }, [liveLocation, ownerTrackingEnabled, user?.$id, foodItem.ownerId, foodItem.$id, requestId, activeRequest])
 
-  // Toggle tracking handler
   const handleToggleTracking = async () => {
     if (ownerTrackingEnabled) {
       setOwnerTrackingEnabled(false)
@@ -181,6 +207,38 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
       setOwnerTrackingEnabled(true)
       toast.success('Live tracking enabled')
     }
+  }
+
+  const handleToggleTripSharing = async () => {
+    if (!requestId || !activeRequest) {
+      toast.error('No active request found')
+      return
+    }
+
+    try {
+      if (tripSharingEnabled) {
+        await disableTripSharing(requestId)
+        setTripSharingEnabled(false)
+        setShareLink('')
+        toast.success('Trip sharing disabled')
+      } else {
+        const response = await enableTripSharing(requestId)
+        const link = `${window.location.origin}/shared-trip/${response.shareToken}`
+        setShareLink(link)
+        setTripSharingEnabled(true)
+        toast.success('Trip sharing enabled')
+      }
+    } catch (error) {
+      console.error('Error toggling trip sharing:', error)
+      toast.error('Failed to toggle trip sharing')
+    }
+  }
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(shareLink)
+    setCopied(true)
+    toast.success('Link copied to clipboard')
+    setTimeout(() => setCopied(false), 2000)
   }
 
   const fetchRoute = async (start, end) => {
@@ -221,31 +279,36 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
     }
   }
 
-  const calculateDistanceBetweenPoints = (point1, point2) => {
-    const R = 6371 // Earth's radius in km
-    const dLat = (point2.lat - point1.lat) * Math.PI / 180
-    const dLon = (point2.lng - point1.lng) * Math.PI / 180
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c
-  }
-
   const routeLayer = {
     id: 'route',
     type: 'line',
     paint: {
       'line-color': '#FF5136',
-      'line-width': 4,
-      'line-opacity': 0.8
+      'line-width': 5,
+      'line-opacity': 0.9
+    },
+    layout: {
+      'line-cap': 'round',
+      'line-join': 'round'
+    }
+  }
+
+  const routeCasingLayer = {
+    id: 'route-casing',
+    type: 'line',
+    paint: {
+      'line-color': '#000000',
+      'line-width': 7,
+      'line-opacity': 0.3
+    },
+    layout: {
+      'line-cap': 'round',
+      'line-join': 'round'
     }
   }
 
   const displayLocation = liveLocation || foodItem.pickupAddress
 
-  // Validate coordinates are valid numbers
   const isValidCoordinate = (coord) => {
     return coord && typeof coord.lat === 'number' && typeof coord.lng === 'number' && 
            !isNaN(coord.lat) && !isNaN(coord.lng) &&
@@ -262,7 +325,6 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
     window.open(url, '_blank')
   }
 
-  // Return early message if no valid location
   if (!hasValidLocation) {
     return (
       <div className="p-8 text-center bg-neutral-50 rounded-xl border border-neutral-200">
@@ -273,7 +335,6 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
     )
   }
 
-  // Return early if no Mapbox token
   if (!MAPBOX_TOKEN) {
     return (
       <div className="p-8 text-center bg-neutral-50 rounded-xl border border-neutral-200">
@@ -292,7 +353,6 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
 
   return (
     <div className="space-y-3 md:space-y-4">
-      {/* Owner Tracking Control */}
       {user?.$id === foodItem.ownerId && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -325,7 +385,68 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
         </motion.div>
       )}
 
-      {/* Route Info Cards */}
+      {activeRequest && activeRequest.status === 'accepted' && user?.$id === activeRequest.requesterId && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-accent/10 to-secondary/10 rounded-xl p-4 border border-accent/20"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent/20 rounded-lg">
+                <Shield size={20} className="text-accent" />
+              </div>
+              <div>
+                <div className="font-bold text-neutral-900 text-sm md:text-base">Safety Share</div>
+                <div className="text-xs md:text-sm text-neutral-600">Share live trip with trusted contacts</div>
+              </div>
+            </div>
+            <button
+              onClick={handleToggleTripSharing}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                tripSharingEnabled ? 'bg-accent' : 'bg-neutral-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  tripSharingEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+          
+          <AnimatePresence>
+            {tripSharingEnabled && shareLink && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 pt-3 border-t border-accent/20"
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={shareLink}
+                    readOnly
+                    className="flex-1 px-3 py-2 text-xs md:text-sm bg-white border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent/50"
+                  />
+                  <button
+                    onClick={handleCopyLink}
+                    className="p-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+                  >
+                    {copied ? <Check size={18} /> : <Copy size={18} />}
+                  </button>
+                </div>
+                <p className="text-xs text-neutral-600 mt-2 flex items-center gap-1">
+                  <Shield size={12} className="text-accent" />
+                  Share this link with trusted contacts to let them track your trip
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+
       {routeInfo && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -350,7 +471,6 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
         </motion.div>
       )}
 
-      {/* Map Container */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -369,31 +489,30 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
           onLoad={() => {
             setMapLoaded(true)
           }}
-          mapStyle="mapbox://styles/mapbox/streets-v12"
+          mapStyle="mapbox://styles/mapbox/standard"
           mapboxAccessToken={MAPBOX_TOKEN}
           style={{ width: '100%', height: '100%' }}
           attributionControl={false}
           interactive={mapLoaded}
         >
-          {/* Navigation Controls */}
           <NavigationControl position="top-right" />
           <GeolocateControl position="top-right" />
 
-          {/* User Location Marker */}
           {hasValidUserLocation && (
             <Marker
               latitude={userLocation.lat}
               longitude={userLocation.lng}
-              anchor="bottom"
+              anchor="center"
             >
               <div className="relative">
-                <div className="absolute -inset-2 bg-secondary/30 rounded-full animate-ping" />
-                <div className="relative w-4 h-4 bg-secondary rounded-full border-2 border-white shadow-lg" />
+                <div className="absolute -inset-3 bg-blue-500/20 rounded-full animate-ping" />
+                <div className="relative w-5 h-5 bg-blue-500 rounded-full border-3 border-white shadow-xl">
+                  <div className="absolute inset-1 bg-white rounded-full" />
+                </div>
               </div>
             </Marker>
           )}
 
-          {/* Food Location Marker */}
           {validDisplayLocation && (
             <Marker
               latitude={displayLocation.lat}
@@ -407,30 +526,47 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
                 className="relative"
               >
                 {trackingActive && liveLocation && (
-                  <div className="absolute -inset-3 bg-primary/30 rounded-full animate-pulse" />
+                  <>
+                    <div className="absolute -inset-4 bg-primary/20 rounded-full animate-ping" />
+                    <div className="absolute -inset-3 bg-primary/30 rounded-full animate-pulse" />
+                  </>
                 )}
-                <div className="relative bg-primary text-white p-3 rounded-full shadow-xl">
-                  <MapPin size={24} fill="white" />
-                </div>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-primary" />
-                {trackingActive && (
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap bg-primary text-white text-xs px-2 py-1 rounded-full">
-                    Live
+                <div className="relative">
+                  <div className="bg-white p-1 rounded-full shadow-2xl">
+                    <div className="bg-primary text-white p-2.5 rounded-full">
+                      <MapPin size={20} fill="white" strokeWidth={0} />
+                    </div>
                   </div>
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-white" />
+                </div>
+                {trackingActive && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                  >
+                    <div className="bg-primary text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1.5">
+                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                      LIVE
+                    </div>
+                  </motion.div>
                 )}
               </motion.div>
             </Marker>
           )}
 
-          {/* Route Line */}
           {route && (
-            <Source id="route" type="geojson" data={{ type: 'Feature', geometry: route }}>
-              <Layer {...routeLayer} />
-            </Source>
+            <>
+              <Source id="route-casing" type="geojson" data={{ type: 'Feature', geometry: route }}>
+                <Layer {...routeCasingLayer} />
+              </Source>
+              <Source id="route" type="geojson" data={{ type: 'Feature', geometry: route }}>
+                <Layer {...routeLayer} />
+              </Source>
+            </>
           )}
         </Map>
 
-        {/* Live Tracking Badge */}
         {trackingActive && liveLocation && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -444,14 +580,15 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
         )}
       </motion.div>
 
-      {/* Location Details */}
       <div className="bg-neutral-50 rounded-lg md:rounded-xl p-3 md:p-4">
         <div className="flex items-start gap-2 md:gap-3">
           <div className="p-1.5 md:p-2 bg-primary/10 rounded-lg">
             <MapPin size={18} className="text-primary md:w-5 md:h-5" />
           </div>
           <div className="flex-1">
-            <div className="font-bold text-sm md:text-base text-neutral-900 mb-0.5 md:mb-1">Pickup Location</div>
+            <div className="font-bold text-sm md:text-base text-neutral-900 mb-0.5 md:mb-1">
+              {trackingActive && liveLocation ? 'Current Location (Live)' : 'Pickup Location'}
+            </div>
             <button
               onClick={openInMaps}
               className="text-xs md:text-sm text-primary hover:text-primary/80 underline text-left transition-colors"
@@ -467,7 +604,6 @@ const LocationRouteTab = ({ foodItem, enableTracking = false }) => {
         </div>
       </div>
 
-      {/* Directions Steps (Mobile Optimized) */}
       {routeInfo?.steps && (
         <div className="bg-white rounded-lg md:rounded-xl border border-neutral-200 p-3 md:p-4">
           <h4 className="font-bold text-sm md:text-base text-neutral-900 mb-2 md:mb-3 flex items-center gap-2">

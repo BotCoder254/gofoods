@@ -4,6 +4,10 @@ import { createNotification } from './notifications'
 
 const REQUESTS_COLLECTION_ID = process.env.REACT_APP_APPWRITE_REQUESTS_COLLECTION_ID || 'requests'
 
+const generateShareToken = () => {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`
+}
+
 export const createRequest = async (data) => {
   const payload = {
     foodItemId: data.foodItemId,
@@ -209,5 +213,55 @@ export const confirmCompletion = async (requestId, data) => {
   } catch (error) {
     console.error('Error confirming completion:', error)
     throw error
+  }
+}
+
+export const enableTripSharing = async (requestId) => {
+  const shareToken = generateShareToken()
+  return await databases.updateDocument(
+    DATABASE_ID,
+    REQUESTS_COLLECTION_ID,
+    requestId,
+    { shareEnabled: true, shareToken }
+  )
+}
+
+export const disableTripSharing = async (requestId) => {
+  return await databases.updateDocument(
+    DATABASE_ID,
+    REQUESTS_COLLECTION_ID,
+    requestId,
+    { shareEnabled: false, shareToken: null }
+  )
+}
+
+export const getSharedTrip = async (shareToken) => {
+  const queries = [
+    Query.equal('shareToken', shareToken),
+    Query.equal('shareEnabled', true),
+    Query.limit(1)
+  ]
+  const response = await databases.listDocuments(DATABASE_ID, REQUESTS_COLLECTION_ID, queries)
+  return response.documents[0] || null
+}
+
+export const saveRouteSnapshot = async (requestId, location) => {
+  try {
+    const request = await databases.getDocument(DATABASE_ID, REQUESTS_COLLECTION_ID, requestId)
+    const currentPath = request.routePath ? 
+      (typeof request.routePath === 'string' ? JSON.parse(request.routePath) : request.routePath) 
+      : []
+    
+    const newPath = [...currentPath, { lat: location.lat, lng: location.lng, timestamp: Date.now() }]
+    
+    return await databases.updateDocument(
+      DATABASE_ID,
+      REQUESTS_COLLECTION_ID,
+      requestId,
+      { routePath: JSON.stringify(newPath) }
+    )
+  } catch (error) {
+    console.error('Error saving route snapshot:', error)
+    return null
   }
 }
