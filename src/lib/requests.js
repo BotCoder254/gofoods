@@ -22,7 +22,11 @@ export const createRequest = async (data) => {
     confirmedAt: null,
     handoffPoint: null,
     requesterLocation: null,
-    ownerLocation: null
+    ownerLocation: null,
+    shareEnabled: false,
+    shareToken: null,
+    routePath: '[]',
+    completedAt: null
   }
   
   // Override with actual values if provided
