@@ -86,37 +86,37 @@ const Requests = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6"
+        className="mb-4 md:mb-6"
       >
-        <h1 className="text-3xl font-bold text-neutral-900 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
+        <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 mb-2" style={{ fontFamily: 'Poppins, sans-serif' }}>
           Requests
         </h1>
-        <p className="text-neutral-600" style={{ fontFamily: 'Inter, sans-serif' }}>
+        <p className="text-sm md:text-base text-neutral-600" style={{ fontFamily: 'Inter, sans-serif' }}>
           Manage your food requests
         </p>
       </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="flex gap-2 mb-4 md:mb-6">
         <button
           onClick={() => setActiveTab('incoming')}
-          className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all ${
+          className={`flex-1 px-3 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-medium transition-all ${
             activeTab === 'incoming'
               ? 'bg-primary text-white'
               : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50'
           }`}
         >
-          Incoming ({incoming.length})
+          <span className="hidden sm:inline">Incoming </span>({incoming.length})
         </button>
         <button
           onClick={() => setActiveTab('outgoing')}
-          className={`flex-1 px-6 py-3 rounded-xl font-medium transition-all ${
+          className={`flex-1 px-3 md:px-6 py-2.5 md:py-3 rounded-xl text-sm md:text-base font-medium transition-all ${
             activeTab === 'outgoing'
               ? 'bg-primary text-white'
               : 'bg-white text-neutral-700 border border-neutral-200 hover:bg-neutral-50'
           }`}
         >
-          Outgoing ({outgoing.length})
+          <span className="hidden sm:inline">Outgoing </span>({outgoing.length})
         </button>
       </div>
 
@@ -129,7 +129,7 @@ const Requests = () => {
 
       {/* Requests List */}
       {!isLoading && requests.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {requests.map((request) => (
             <RequestCard
               key={request.$id}
@@ -149,11 +149,11 @@ const Requests = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-12 text-center"
+          className="bg-white rounded-2xl shadow-sm border border-neutral-200 p-8 md:p-12 text-center"
         >
-          <Package size={48} className="mx-auto text-neutral-300 mb-4" />
-          <h3 className="text-xl font-bold text-neutral-900 mb-2">No Requests</h3>
-          <p className="text-neutral-600">
+          <Package size={40} className="mx-auto text-neutral-300 mb-3 md:mb-4 md:w-12 md:h-12" />
+          <h3 className="text-lg md:text-xl font-bold text-neutral-900 mb-2">No Requests</h3>
+          <p className="text-sm md:text-base text-neutral-600">
             {activeTab === 'incoming' ? 'No incoming requests yet' : 'No outgoing requests yet'}
           </p>
         </motion.div>
@@ -176,70 +176,79 @@ const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isU
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl border border-neutral-200 p-6 hover:shadow-md transition-shadow"
+      className="bg-white rounded-xl border border-neutral-200 p-4 md:p-6 hover:shadow-md transition-shadow"
     >
-      <div className="flex items-start gap-4">
-        <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <Link to={`/food/${foodItem.$id}`} className="font-bold text-neutral-900 hover:text-primary">
+      <div className="flex flex-col sm:flex-row items-start gap-3 md:gap-4">
+        <div className="flex-1 w-full">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-2">
+            <div className="flex-1">
+              <Link to={`/food/${foodItem.$id}`} className="font-bold text-sm md:text-base text-neutral-900 hover:text-primary">
                 {foodItem.title}
               </Link>
-              <p className="text-sm text-neutral-600 mt-1">
+              <p className="text-xs md:text-sm text-neutral-600 mt-1">
                 {request.pickupOrDelivery === 'pickup' ? '📍 Pickup' : '🚚 Delivery'}
-                {request.proposedTime && ` • ${new Date(request.proposedTime).toLocaleString()}`}
+                {request.proposedTime && (
+                  <span className="block sm:inline sm:ml-1">
+                    • {new Date(request.proposedTime).toLocaleString([], { 
+                      month: 'short', 
+                      day: 'numeric', 
+                      hour: '2-digit', 
+                      minute: '2-digit' 
+                    })}
+                  </span>
+                )}
               </p>
             </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold border ${STATUS_COLORS[request.status]}`}>
+            <span className={`px-2.5 md:px-3 py-1 rounded-full text-xs font-bold border whitespace-nowrap ${STATUS_COLORS[request.status]}`}>
               {request.status}
             </span>
           </div>
 
           {request.message && (
-            <div className="p-3 bg-neutral-50 rounded-lg mb-3">
-              <p className="text-sm text-neutral-700">{request.message}</p>
+            <div className="p-2.5 md:p-3 bg-neutral-50 rounded-lg mb-3">
+              <p className="text-xs md:text-sm text-neutral-700 line-clamp-3">{request.message}</p>
             </div>
           )}
 
           {/* Actions */}
           {isIncoming && request.status === 'pending' && (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={() => onAccept(request)}
                 disabled={isUpdating}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-accent text-white rounded-lg md:rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50"
               >
-                <Check size={18} />
+                <Check size={16} className="md:w-[18px] md:h-[18px]" />
                 Accept
               </button>
               <button
                 onClick={() => onReject(request)}
                 disabled={isUpdating}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-error text-white rounded-xl hover:bg-error/90 transition-all disabled:opacity-50"
+                className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-error text-white rounded-lg md:rounded-xl hover:bg-error/90 transition-all disabled:opacity-50"
               >
-                <X size={18} />
+                <X size={16} className="md:w-[18px] md:h-[18px]" />
                 Reject
               </button>
             </div>
           )}
 
           {request.status === 'accepted' && (
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               {isIncoming && (
                 <button
                   onClick={() => onCollected(request)}
                   disabled={isUpdating}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-secondary text-white rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-secondary text-white rounded-lg md:rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50"
                 >
-                  <Package size={18} />
-                  Mark as Collected
+                  <Package size={16} className="md:w-[18px] md:h-[18px]" />
+                  <span className="hidden sm:inline">Mark as </span>Collected
                 </button>
               )}
               <button
                 onClick={() => navigate(`/chat/${request.$id}`)}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all"
+                className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-primary text-white rounded-lg md:rounded-xl hover:bg-primary/90 transition-all"
               >
-                <MessageSquare size={18} />
+                <MessageSquare size={16} className="md:w-[18px] md:h-[18px]" />
                 Chat
               </button>
             </div>
