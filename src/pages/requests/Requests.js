@@ -4,10 +4,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getRequestsByOwner, getRequestsByUser, updateRequestStatus } from '../../lib/requests'
 import { getFoodItemById, updateFoodItem } from '../../lib/foodItems'
 import { useAuth } from '../../context/AuthContext'
-import { Check, X, Clock, Package, MessageSquare } from 'lucide-react'
+import { Check, X, Clock, Package, MessageSquare, Navigation2, MapPin } from 'lucide-react'
 import { toast } from 'react-toastify'
 import Loader from '../../components/common/Loader'
 import { Link, useNavigate } from 'react-router-dom'
+import RouteAwareAvailability from '../../components/requests/RouteAwareAvailability'
+import StatusIndicator from '../../components/requests/StatusIndicator'
 
 const STATUS_COLORS = {
   pending: 'bg-warning/10 text-warning border-warning',
@@ -18,9 +20,10 @@ const STATUS_COLORS = {
 }
 
 const Requests = () => {
-  const { session } = useAuth()
+  const { session, user } = useAuth()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('incoming')
+  const [showRouteAware, setShowRouteAware] = useState(null)
 
   const { data: incomingRequests, isLoading: loadingIncoming } = useQuery({
     queryKey: ['requests', 'incoming', session.$id],
@@ -139,6 +142,8 @@ const Requests = () => {
               onReject={handleReject}
               onCollected={handleCollected}
               isUpdating={updateStatusMutation.isPending}
+              onShowRoute={(req) => setShowRouteAware(req)}
+              userLocation={user?.location}
             />
           ))}
         </div>
@@ -158,11 +163,34 @@ const Requests = () => {
           </p>
         </motion.div>
       )}
+      {/* Route-Aware Modal */}
+      {showRouteAware && user?.location && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden"
+          >
+            <RouteAwareAvailability
+              currentLocation={user.location}
+              pickupLocation={showRouteAware.pickupLocation}
+              onAccept={() => {
+                handleAccept(showRouteAware)
+                setShowRouteAware(null)
+              }}
+              onDecline={() => {
+                handleReject(showRouteAware)
+                setShowRouteAware(null)
+              }}
+            />
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
 
-const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isUpdating }) => {
+const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isUpdating, onShowRoute, userLocation }) => {
   const navigate = useNavigate()
   const { data: foodItem, isError } = useQuery({
     queryKey: ['foodItem', request.foodItemId],
@@ -178,6 +206,9 @@ const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isU
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-xl border border-neutral-200 p-4 md:p-6 hover:shadow-md transition-shadow"
     >
+      {/* Status Indicator */}
+      <StatusIndicator request={request} isIncoming={isIncoming} />
+
       <div className="flex flex-col sm:flex-row items-start gap-3 md:gap-4">
         <div className="flex-1 w-full">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between mb-3 gap-2">
@@ -209,10 +240,40 @@ const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isU
               <p className="text-xs md:text-sm text-neutral-700 line-clamp-3">{request.message}</p>
             </div>
           )}
+          
+          {request.handoffPoint && (
+            <div className="p-2.5 md:p-3 bg-accent/10 border border-accent/20 rounded-lg mb-3">
+              <div className="flex items-start gap-2">
+                <MapPin size={14} className="text-accent flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs md:text-sm font-medium text-accent block">Custom handoff point</span>
+                  {(() => {
+                    try {
+                      const handoff = typeof request.handoffPoint === 'string' ? JSON.parse(request.handoffPoint) : request.handoffPoint
+                      return handoff.placeName && (
+                        <span className="text-xs text-neutral-600 block truncate mt-0.5">{handoff.placeName}</span>
+                      )
+                    } catch (e) {
+                      return null
+                    }
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Actions */}
           {isIncoming && request.status === 'pending' && (
             <div className="flex flex-col sm:flex-row gap-2">
+              {userLocation && foodItem.pickupAddress && (
+                <button
+                  onClick={() => onShowRoute({ ...request, pickupLocation: foodItem.pickupAddress })}
+                  className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-secondary text-white rounded-lg md:rounded-xl hover:bg-secondary/90 transition-all"
+                >
+                  <Navigation2 size={16} className="md:w-[18px] md:h-[18px]" />
+                  View Route
+                </button>
+              )}
               <button
                 onClick={() => onAccept(request)}
                 disabled={isUpdating}
@@ -234,11 +295,18 @@ const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isU
 
           {request.status === 'accepted' && (
             <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => navigate(`/tracking/${request.$id}`)}
+                className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-secondary text-white rounded-lg md:rounded-xl hover:bg-secondary/90 transition-all"
+              >
+                <MapPin size={16} className="md:w-[18px] md:h-[18px]" />
+                Track
+              </button>
               {isIncoming && (
                 <button
                   onClick={() => onCollected(request)}
                   disabled={isUpdating}
-                  className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-secondary text-white rounded-lg md:rounded-xl hover:bg-secondary/90 transition-all disabled:opacity-50"
+                  className="flex-1 flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base bg-accent text-white rounded-lg md:rounded-xl hover:bg-accent/90 transition-all disabled:opacity-50"
                 >
                   <Package size={16} className="md:w-[18px] md:h-[18px]" />
                   <span className="hidden sm:inline">Mark as </span>Collected

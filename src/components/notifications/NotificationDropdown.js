@@ -89,6 +89,8 @@ const NotificationDropdown = () => {
       navigate(`/chat/${payload.requestId}`)
     } else if (type === 'match' && payload?.requestId) {
       navigate('/requests')
+    } else if (type === 'system' && payload?.requestId) {
+      navigate(`/tracking/${payload.requestId}`)
     }
 
     setIsOpen(false)
@@ -102,6 +104,8 @@ const NotificationDropdown = () => {
         return <MessageCircle size={20} className="text-secondary" />
       case 'match':
         return <CheckCircle size={20} className="text-accent" />
+      case 'system':
+        return <Bell size={20} className="text-warning" />
       default:
         return <Bell size={20} className="text-neutral-600" />
     }

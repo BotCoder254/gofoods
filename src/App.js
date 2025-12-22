@@ -22,6 +22,7 @@ import MapView from './pages/map/MapView'
 import Requests from './pages/requests/Requests'
 import Chat from './pages/messages/Chat'
 import Bookmarks from './pages/bookmarks/Bookmarks'
+import TrackingPage from './pages/tracking/TrackingPage'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -99,6 +100,7 @@ function App() {
           <Route path="food/:id" element={<FoodDetail />} />
           <Route path="map" element={<MapView />} />
           <Route path="requests" element={<Requests />} />
+          <Route path="tracking/:requestId" element={<TrackingPage />} />
           <Route path="chat/:requestId" element={<Chat />} />
           <Route path="bookmarks" element={<Bookmarks />} />
           <Route path="profile" element={<Profile />} />
