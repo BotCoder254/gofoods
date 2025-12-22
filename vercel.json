@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/static/(.*)",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      },
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_APPWRITE_ENDPOINT": "@appwrite_endpoint",
+    "REACT_APP_APPWRITE_PROJECT_ID": "@appwrite_project_id",
+    "REACT_APP_APPWRITE_DATABASE_ID": "@appwrite_database_id",
+    "REACT_APP_MAPBOX_TOKEN": "@mapbox_token"
+  }
+}
