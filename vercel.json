@@ -21,11 +21,6 @@
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "env": {
-    "REACT_APP_APPWRITE_ENDPOINT": "@appwrite_endpoint",
-    "REACT_APP_APPWRITE_PROJECT_ID": "@appwrite_project_id",
-    "REACT_APP_APPWRITE_DATABASE_ID": "@appwrite_database_id",
-    "REACT_APP_MAPBOX_TOKEN": "@mapbox_token"
-  }
+  ]
+  
 }
