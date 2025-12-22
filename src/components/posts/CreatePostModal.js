@@ -77,7 +77,7 @@ const CreatePostModal = ({ isOpen, onClose }) => {
         ownerId: session.$id,
         title: data.title,
         description: data.description || '',
-        images: uploadedImageIds,
+        images: uploadedImageIds.length > 0 ? JSON.stringify(uploadedImageIds) : '[]',
         foodType: data.foodType,
         tags: data.tags,
         quantity: parseInt(data.quantity),

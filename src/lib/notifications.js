@@ -11,7 +11,7 @@ export const createNotification = async (notificationData) => {
       {
         userId: notificationData.userId,
         type: notificationData.type,
-        payload: notificationData.payload || {},
+        payload: JSON.stringify(notificationData.payload || {}),
         read: false
       }
     )
@@ -33,7 +33,10 @@ export const getUserNotifications = async (userId, limit = 50) => {
         Query.limit(limit)
       ]
     )
-    return response.documents
+    return response.documents.map(notif => ({
+      ...notif,
+      payload: typeof notif.payload === 'string' ? JSON.parse(notif.payload || '{}') : notif.payload
+    }))
   } catch (error) {
     console.error('Error fetching notifications:', error)
     throw error

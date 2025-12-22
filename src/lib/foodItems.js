@@ -14,13 +14,13 @@ export const createFoodItem = async (data) => {
     description: data.description || '',
     images: data.images || [],
     foodType: data.foodType,
-    tags: data.tags || [],
+    tags: Array.isArray(data.tags) ? JSON.stringify(data.tags) : '[]',
     quantity: data.quantity,
     price: data.price || 0,
     isDonation: data.isDonation,
     pickup: data.pickup,
     delivery: data.delivery,
-    pickupAddress: data.pickupAddress || null,
+    pickupAddress: data.pickupAddress ? JSON.stringify(data.pickupAddress) : null,
     deliveryRadiusKm: data.deliveryRadiusKm || 0,
     availableFrom: data.availableFrom || new Date().toISOString(),
     availableUntil: data.availableUntil || null,
@@ -48,11 +48,27 @@ export const getFoodItems = async (filters = {}) => {
     queries.push(Query.equal('isDonation', filters.isDonation))
   }
 
-  return await databases.listDocuments(DATABASE_ID, FOODS_COLLECTION_ID, queries)
+  const response = await databases.listDocuments(DATABASE_ID, FOODS_COLLECTION_ID, queries)
+  
+  return {
+    ...response,
+    documents: response.documents.map(item => ({
+      ...item,
+      images: typeof item.images === 'string' ? JSON.parse(item.images || '[]') : (item.images || []),
+      tags: typeof item.tags === 'string' ? JSON.parse(item.tags || '[]') : (item.tags || []),
+      pickupAddress: typeof item.pickupAddress === 'string' ? JSON.parse(item.pickupAddress || 'null') : item.pickupAddress
+    }))
+  }
 }
 
 export const getFoodItemById = async (itemId) => {
-  return await databases.getDocument(DATABASE_ID, FOODS_COLLECTION_ID, itemId)
+  const item = await databases.getDocument(DATABASE_ID, FOODS_COLLECTION_ID, itemId)
+  return {
+    ...item,
+    images: typeof item.images === 'string' ? JSON.parse(item.images || '[]') : (item.images || []),
+    tags: typeof item.tags === 'string' ? JSON.parse(item.tags || '[]') : (item.tags || []),
+    pickupAddress: typeof item.pickupAddress === 'string' ? JSON.parse(item.pickupAddress || 'null') : item.pickupAddress
+  }
 }
 
 export const updateFoodItem = async (itemId, data) => {
@@ -77,6 +93,15 @@ export const getFoodImageUrl = (fileId, width = 400, height = 400) => {
   return storage.getFilePreview(STORAGE_BUCKET_ID, fileId, width, height)
 }
 
+export const parseFoodItemImages = (item) => {
+  if (!item) return item
+  
+  return {
+    ...item,
+    images: typeof item.images === 'string' ? JSON.parse(item.images || '[]') : (item.images || [])
+  }
+}
+
 export const deleteFoodImage = async (fileId) => {
   return await storage.deleteFile(STORAGE_BUCKET_ID, fileId)
 }
@@ -91,5 +116,10 @@ export const searchFoodItems = async (searchTerm) => {
   ]
   
   const response = await databases.listDocuments(DATABASE_ID, FOODS_COLLECTION_ID, queries)
-  return response.documents
+  return response.documents.map(item => ({
+    ...item,
+    images: typeof item.images === 'string' ? JSON.parse(item.images || '[]') : (item.images || []),
+    tags: typeof item.tags === 'string' ? JSON.parse(item.tags || '[]') : (item.tags || []),
+    pickupAddress: typeof item.pickupAddress === 'string' ? JSON.parse(item.pickupAddress || 'null') : item.pickupAddress
+  }))
 }

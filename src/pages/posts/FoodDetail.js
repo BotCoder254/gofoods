@@ -294,17 +294,29 @@ const FoodDetail = () => {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            <Button 
-              variant="primary" 
-              fullWidth 
-              icon={Send}
-              onClick={() => setShowRequestModal(true)}
-            >
-              Request Item
-            </Button>
-            <Button variant="outline" icon={MessageCircle}>
-              Message
-            </Button>
+            {user?.$id !== item.ownerId ? (
+              <>
+                <Button 
+                  variant="primary" 
+                  fullWidth 
+                  icon={Send}
+                  onClick={() => setShowRequestModal(true)}
+                >
+                  Request Item
+                </Button>
+                <Button 
+                  variant="outline" 
+                  icon={MessageCircle}
+                  onClick={() => setShowRequestModal(true)}
+                >
+                  Message
+                </Button>
+              </>
+            ) : (
+              <div className="w-full p-4 bg-neutral-100 rounded-xl text-center text-neutral-600">
+                This is your listing
+              </div>
+            )}
           </div>
 
           {/* Posted Time */}
