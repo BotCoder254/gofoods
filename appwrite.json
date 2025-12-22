@@ -1,19 +1,13 @@
 {
   "$id": "gofoods",
   "name": "GoFoods",
-  "runtime": "node-18.0",
-  "execute": [],
-  "events": [],
-  "schedule": "",
-  "timeout": 15,
-  "enabled": true,
-  "logging": true,
-  "entrypoint": "src/index.js",
+  "runtime": "static",
+  "path": "build",
   "commands": "npm install && npm run build",
   "ignore": [
     "node_modules",
     ".git",
-    ".env"
-  ],
-  "path": "build"
+    ".env",
+    "src"
+  ]
 }

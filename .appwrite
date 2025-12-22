@@ -1,0 +1,15 @@
+# Static Site Configuration for Appwrite
+
+## Build Output Directory
+outputDir = "build"
+
+## Build Command
+[build]
+  command = "CI=false GENERATE_SOURCEMAP=false npm run build"
+  publish = "build"
+
+## Environment Variables
+[build.environment]
+  NODE_VERSION = "18"
+  CI = "false"
+  GENERATE_SOURCEMAP = "false"
