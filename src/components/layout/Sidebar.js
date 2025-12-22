@@ -144,13 +144,15 @@ const Sidebar = ({ isOpen, onClose }) => {
         </div>
       </motion.aside>
 
-      {/* Floating Create Button - Desktop & Mobile */}
-      <button
-        onClick={() => setShowCreatePost(true)}
-        className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all hover:scale-110"
-      >
-        <PlusCircle size={28} />
-      </button>
+      {/* Floating Create Button - Desktop & Mobile (hidden on chat page) */}
+      {!location.pathname.startsWith('/chat') && (
+        <button
+          onClick={() => setShowCreatePost(true)}
+          className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all hover:scale-110"
+        >
+          <PlusCircle size={28} />
+        </button>
+      )}
 
       {/* Create Post Modal */}
       <CreatePostModal isOpen={showCreatePost} onClose={() => setShowCreatePost(false)} />

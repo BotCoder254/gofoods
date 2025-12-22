@@ -1,5 +1,4 @@
 import { databases, storage, DATABASE_ID, STORAGE_BUCKET_ID, Query, client } from '../config/appwrite'
-import { ID } from 'appwrite'
 import { createNotification } from './notifications'
 import { getRequestById } from './requests'
 
@@ -10,14 +9,14 @@ export const createMessage = async (data) => {
     requestId: data.requestId,
     senderId: data.senderId,
     text: data.text || '',
-    attachments: data.attachments || [],
-    readBy: [data.senderId]
+    attachments: JSON.stringify(data.attachments || []),
+    readBy: JSON.stringify([data.senderId])
   }
 
   const response = await databases.createDocument(
     DATABASE_ID,
     MESSAGES_COLLECTION_ID,
-    ID.unique(),
+    'unique()',
     payload
   )
   
@@ -51,7 +50,7 @@ export const getMessagesByRequest = async (requestId) => {
 
 export const markMessageAsRead = async (messageId, userId) => {
   const message = await databases.getDocument(DATABASE_ID, MESSAGES_COLLECTION_ID, messageId)
-  const readBy = message.readBy || []
+  const readBy = message.readBy ? JSON.parse(message.readBy) : []
   
   if (!readBy.includes(userId)) {
     readBy.push(userId)
@@ -59,7 +58,7 @@ export const markMessageAsRead = async (messageId, userId) => {
       DATABASE_ID,
       MESSAGES_COLLECTION_ID,
       messageId,
-      { readBy }
+      { readBy: JSON.stringify(readBy) }
     )
   }
   
@@ -67,7 +66,7 @@ export const markMessageAsRead = async (messageId, userId) => {
 }
 
 export const uploadMessageAttachment = async (file) => {
-  return await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), file)
+  return await storage.createFile(STORAGE_BUCKET_ID, 'unique()', file)
 }
 
 export const getAttachmentUrl = (fileId) => {
