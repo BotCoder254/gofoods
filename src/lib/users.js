@@ -46,9 +46,16 @@ export const deleteAvatar = async (fileId) => {
 export const searchUsers = async (searchTerm) => {
   if (!searchTerm) return []
   
+  // Get all users and filter client-side since fulltext index may not be available
   const response = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
-    Query.search('displayName', searchTerm),
-    Query.limit(20)
+    Query.limit(100)
   ])
-  return response.documents
+  
+  // Filter by search term client-side
+  const filtered = response.documents.filter(user =>
+    user.displayName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  
+  return filtered.slice(0, 20)
 }

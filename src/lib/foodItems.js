@@ -109,14 +109,21 @@ export const deleteFoodImage = async (fileId) => {
 export const searchFoodItems = async (searchTerm) => {
   if (!searchTerm) return []
   
+  // Get all active items and filter client-side since fulltext index may not be available
   const queries = [
     Query.equal('status', 'active'),
-    Query.search('title', searchTerm),
-    Query.limit(20)
+    Query.limit(100)
   ]
   
   const response = await databases.listDocuments(DATABASE_ID, FOODS_COLLECTION_ID, queries)
-  return response.documents.map(item => ({
+  
+  // Filter by search term client-side
+  const filtered = response.documents.filter(item => 
+    item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+  
+  return filtered.slice(0, 20).map(item => ({
     ...item,
     images: typeof item.images === 'string' ? JSON.parse(item.images || '[]') : (item.images || []),
     tags: typeof item.tags === 'string' ? JSON.parse(item.tags || '[]') : (item.tags || []),
