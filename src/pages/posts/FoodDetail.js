@@ -36,6 +36,18 @@ const FoodDetail = () => {
     enabled: !!item?.ownerId
   })
 
+  const { data: similarItems } = useQuery({
+    queryKey: ['similarItems', item?.foodType, item?.tags],
+    queryFn: async () => {
+      const { getFoodItems } = await import('../../lib/foodItems')
+      const response = await getFoodItems({ foodType: item.foodType })
+      return response.documents
+        .filter(i => i.$id !== item.$id)
+        .slice(0, 4)
+    },
+    enabled: !!item?.foodType
+  })
+
   if (isLoading) {
     return <Loader fullScreen />
   }
@@ -377,6 +389,73 @@ const FoodDetail = () => {
           onClose={() => setShowRequestModal(false)}
           foodItem={item}
         />
+      )}
+
+      {/* Similar Items Section */}
+      {similarItems && similarItems.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-12"
+        >
+          <h2 className="text-2xl font-bold text-neutral-900 mb-6" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Similar Items
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {similarItems.map((similarItem, index) => (
+              <motion.div
+                key={similarItem.$id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                onClick={() => navigate(`/food/${similarItem.$id}`)}
+                className="bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer group"
+              >
+                <div className="relative aspect-square overflow-hidden">
+                  <img
+                    src={similarItem.images?.[0] ? getFoodImageUrl(similarItem.images[0], 400, 400) : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=400&fit=crop'}
+                    alt={similarItem.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  {similarItem.isDonation && (
+                    <div className="absolute top-3 left-3 px-3 py-1 bg-accent text-white text-xs font-bold rounded-full">
+                      FREE
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-neutral-900 mb-2 line-clamp-1">
+                    {similarItem.title}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    {similarItem.isDonation ? (
+                      <span className="text-lg font-bold text-accent">Free</span>
+                    ) : (
+                      <div className="flex items-center gap-1 text-lg font-bold text-primary">
+                        <DollarSign size={18} />
+                        <span>{similarItem.price?.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1 text-sm text-neutral-600">
+                      <Package size={14} />
+                      <span>{similarItem.quantity}</span>
+                    </div>
+                  </div>
+                  {similarItem.tags && similarItem.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {similarItem.tags.slice(0, 2).map((tag, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-neutral-100 text-neutral-600 text-xs rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
       )}
     </div>
   )
