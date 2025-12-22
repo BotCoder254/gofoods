@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createFoodItem, uploadFoodImage } from '../../lib/foodItems'
+import { createFoodItem, uploadFoodImage, updateFoodItem, getFoodImageUrl } from '../../lib/foodItems'
 import { Input, Button } from '../common/FormElements'
 import LocationPicker from '../profile/LocationPicker'
 import { toast } from 'react-toastify'
@@ -24,12 +24,13 @@ const FOOD_TYPES = [
 
 const TAGS = ['Vegan', 'Vegetarian', 'Halal', 'Kosher', 'Gluten-Free', 'Dairy-Free', 'Nut-Free', 'Organic', 'Homemade']
 
-const CreatePostModal = ({ isOpen, onClose }) => {
+const CreatePostModal = ({ isOpen, onClose, editItem = null }) => {
   const { user, session } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [step, setStep] = useState(1)
   const [uploading, setUploading] = useState(false)
+  const isEditMode = !!editItem
   
   const [formData, setFormData] = useState({
     title: '',
@@ -50,19 +51,64 @@ const CreatePostModal = ({ isOpen, onClose }) => {
 
   const [imageFiles, setImageFiles] = useState([])
   const [imagePreviews, setImagePreviews] = useState([])
+  const [existingImages, setExistingImages] = useState([])
   const [showLocationPicker, setShowLocationPicker] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
 
+  // Load edit data
+  React.useEffect(() => {
+    if (editItem && isOpen) {
+      setFormData({
+        title: editItem.title || '',
+        foodType: editItem.foodType || 'meal',
+        isDonation: editItem.isDonation || false,
+        price: editItem.price?.toString() || '',
+        quantity: editItem.quantity?.toString() || '',
+        description: editItem.description || '',
+        tags: editItem.tags || [],
+        pickup: editItem.pickup ?? true,
+        delivery: editItem.delivery ?? false,
+        pickupAddress: editItem.pickupAddress || null,
+        deliveryRadiusKm: editItem.deliveryRadiusKm?.toString() || '',
+        availableFrom: editItem.availableFrom || '',
+        availableUntil: editItem.availableUntil || '',
+        images: editItem.images || []
+      })
+      setExistingImages(editItem.images || [])
+    } else if (!isOpen) {
+      setFormData({
+        title: '',
+        foodType: 'meal',
+        isDonation: false,
+        price: '',
+        quantity: '',
+        description: '',
+        tags: [],
+        pickup: true,
+        delivery: false,
+        pickupAddress: user?.location || null,
+        deliveryRadiusKm: '',
+        availableFrom: '',
+        availableUntil: '',
+        images: []
+      })
+      setImageFiles([])
+      setImagePreviews([])
+      setExistingImages([])
+      setStep(1)
+    }
+  }, [editItem, isOpen, user])
+
   const createPostMutation = useMutation({
     mutationFn: async (data) => {
-      console.log('Session:', session)
-      console.log('User:', user)
-      
       if (!session?.$id) {
-        throw new Error('You must be logged in to create a post')
+        throw new Error('You must be logged in')
       }
 
-      // Upload images first with progress
+      if (isEditMode && editItem.editCount >= 3) {
+        throw new Error('Maximum edit limit (3) reached for this item')
+      }
+
       const uploadedImageIds = []
       setUploadProgress(0)
       
@@ -73,40 +119,52 @@ const CreatePostModal = ({ isOpen, onClose }) => {
         setUploadProgress(((i + 1) / imageFiles.length) * 100)
       }
 
-      return await createFoodItem({
-        ownerId: session.$id,
+      const allImages = [...existingImages, ...uploadedImageIds]
+
+      const payload = {
         title: data.title,
         description: data.description || '',
-        images: uploadedImageIds.length > 0 ? JSON.stringify(uploadedImageIds) : '[]',
+        images: JSON.stringify(allImages),
         foodType: data.foodType,
-        tags: data.tags,
+        tags: JSON.stringify(data.tags),
         quantity: parseInt(data.quantity),
         price: data.isDonation ? 0 : parseFloat(data.price || 0),
         isDonation: data.isDonation,
         pickup: data.pickup,
         delivery: data.delivery,
-        pickupAddress: data.pickupAddress,
+        pickupAddress: data.pickupAddress ? JSON.stringify(data.pickupAddress) : null,
         deliveryRadiusKm: data.delivery ? parseFloat(data.deliveryRadiusKm) : 0,
         availableFrom: data.availableFrom || new Date().toISOString(),
         availableUntil: data.availableUntil || null
-      })
+      }
+
+      if (isEditMode) {
+        payload.editCount = (editItem.editCount || 0) + 1
+        return await updateFoodItem(editItem.$id, payload)
+      } else {
+        payload.ownerId = session.$id
+        payload.editCount = 0
+        return await createFoodItem(payload)
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['foodItems'])
-      toast.success('Post created successfully!')
+      queryClient.invalidateQueries(['foodItem', editItem?.$id])
+      toast.success(isEditMode ? 'Post updated successfully!' : 'Post created successfully!')
       setUploadProgress(0)
       onClose()
-      navigate('/feed')
+      if (!isEditMode) navigate('/feed')
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create post')
+      toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'create'} post`)
       setUploadProgress(0)
     }
   })
 
   const handleImageSelect = (e) => {
     const files = Array.from(e.target.files)
-    if (files.length + imageFiles.length > 5) {
+    const totalImages = existingImages.length + imageFiles.length + files.length
+    if (totalImages > 5) {
       toast.error('Maximum 5 images allowed')
       return
     }
@@ -130,22 +188,38 @@ const CreatePostModal = ({ isOpen, onClose }) => {
   }
 
   const removeImage = (index) => {
-    setImageFiles(imageFiles.filter((_, i) => i !== index))
-    setImagePreviews(imagePreviews.filter((_, i) => i !== index))
+    if (index < existingImages.length) {
+      setExistingImages(existingImages.filter((_, i) => i !== index))
+    } else {
+      const newIndex = index - existingImages.length
+      setImageFiles(imageFiles.filter((_, i) => i !== newIndex))
+      setImagePreviews(imagePreviews.filter((_, i) => i !== newIndex))
+    }
   }
 
   const moveImage = (fromIndex, toIndex) => {
-    const newFiles = [...imageFiles]
-    const newPreviews = [...imagePreviews]
+    const totalExisting = existingImages.length
     
-    const [movedFile] = newFiles.splice(fromIndex, 1)
-    const [movedPreview] = newPreviews.splice(fromIndex, 1)
-    
-    newFiles.splice(toIndex, 0, movedFile)
-    newPreviews.splice(toIndex, 0, movedPreview)
-    
-    setImageFiles(newFiles)
-    setImagePreviews(newPreviews)
+    if (fromIndex < totalExisting && toIndex < totalExisting) {
+      const newExisting = [...existingImages]
+      const [moved] = newExisting.splice(fromIndex, 1)
+      newExisting.splice(toIndex, 0, moved)
+      setExistingImages(newExisting)
+    } else if (fromIndex >= totalExisting && toIndex >= totalExisting) {
+      const newFiles = [...imageFiles]
+      const newPreviews = [...imagePreviews]
+      const adjustedFrom = fromIndex - totalExisting
+      const adjustedTo = toIndex - totalExisting
+      
+      const [movedFile] = newFiles.splice(adjustedFrom, 1)
+      const [movedPreview] = newPreviews.splice(adjustedFrom, 1)
+      
+      newFiles.splice(adjustedTo, 0, movedFile)
+      newPreviews.splice(adjustedTo, 0, movedPreview)
+      
+      setImageFiles(newFiles)
+      setImagePreviews(newPreviews)
+    }
   }
 
   const toggleTag = (tag) => {
@@ -192,9 +266,16 @@ const CreatePostModal = ({ isOpen, onClose }) => {
         <div className="p-6 border-b border-neutral-200 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-neutral-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              Create Food Post
+              {isEditMode ? 'Edit Food Post' : 'Create Food Post'}
             </h2>
-            <p className="text-sm text-neutral-600 mt-1">Step {step} of 4</p>
+            <p className="text-sm text-neutral-600 mt-1">
+              Step {step} of 4
+              {isEditMode && (
+                <span className="ml-2 text-warning">
+                  <AlertCircle size={14} className="inline mb-0.5" /> {3 - (editItem?.editCount || 0)} edits remaining
+                </span>
+              )}
+            </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-neutral-100 rounded-lg">
             <X size={24} />
@@ -463,16 +544,15 @@ const CreatePostModal = ({ isOpen, onClose }) => {
                   </label>
                   
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {imagePreviews.map((preview, index) => (
+                    {existingImages.map((imageId, index) => (
                       <motion.div
-                        key={index}
+                        key={`existing-${imageId}`}
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="relative aspect-square rounded-xl overflow-hidden border-2 border-neutral-200 group"
                       >
-                        <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        <img src={getFoodImageUrl(imageId, 400, 400)} alt={`Image ${index + 1}`} className="w-full h-full object-cover" />
                         
-                        {/* Remove Button */}
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
@@ -481,7 +561,6 @@ const CreatePostModal = ({ isOpen, onClose }) => {
                           <X size={16} />
                         </button>
                         
-                        {/* Cover Badge */}
                         {index === 0 && (
                           <div className="absolute bottom-2 left-2 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full flex items-center gap-1">
                             <Check size={12} />
@@ -489,25 +568,22 @@ const CreatePostModal = ({ isOpen, onClose }) => {
                           </div>
                         )}
                         
-                        {/* Reorder Buttons */}
-                        {imagePreviews.length > 1 && (
+                        {(existingImages.length + imagePreviews.length) > 1 && (
                           <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {index > 0 && (
                               <button
                                 type="button"
                                 onClick={() => moveImage(index, index - 1)}
                                 className="p-1.5 bg-white/90 rounded-full hover:bg-white"
-                                title="Move left"
                               >
                                 <ArrowLeft size={14} />
                               </button>
                             )}
-                            {index < imagePreviews.length - 1 && (
+                            {index < (existingImages.length + imagePreviews.length - 1) && (
                               <button
                                 type="button"
                                 onClick={() => moveImage(index, index + 1)}
                                 className="p-1.5 bg-white/90 rounded-full hover:bg-white"
-                                title="Move right"
                               >
                                 <ArrowRight size={14} />
                               </button>
@@ -517,7 +593,56 @@ const CreatePostModal = ({ isOpen, onClose }) => {
                       </motion.div>
                     ))}
                     
-                    {imagePreviews.length < 5 && (
+                    {imagePreviews.map((preview, index) => (
+                      <motion.div
+                        key={`new-${index}`}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative aspect-square rounded-xl overflow-hidden border-2 border-neutral-200 group"
+                      >
+                        <img src={preview} alt={`Preview ${index + 1}`} className="w-full h-full object-cover" />
+                        
+                        <button
+                          type="button"
+                          onClick={() => removeImage(existingImages.length + index)}
+                          className="absolute top-2 right-2 p-1.5 bg-error text-white rounded-full hover:bg-error/90 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={16} />
+                        </button>
+                        
+                        {(existingImages.length === 0 && index === 0) && (
+                          <div className="absolute bottom-2 left-2 px-3 py-1 bg-primary text-white text-xs font-medium rounded-full flex items-center gap-1">
+                            <Check size={12} />
+                            Cover
+                          </div>
+                        )}
+                        
+                        {(existingImages.length + imagePreviews.length) > 1 && (
+                          <div className="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {(existingImages.length + index) > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => moveImage(existingImages.length + index, existingImages.length + index - 1)}
+                                className="p-1.5 bg-white/90 rounded-full hover:bg-white"
+                              >
+                                <ArrowLeft size={14} />
+                              </button>
+                            )}
+                            {(existingImages.length + index) < (existingImages.length + imagePreviews.length - 1) && (
+                              <button
+                                type="button"
+                                onClick={() => moveImage(existingImages.length + index, existingImages.length + index + 1)}
+                                className="p-1.5 bg-white/90 rounded-full hover:bg-white"
+                              >
+                                <ArrowRight size={14} />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+                    
+                    {(existingImages.length + imagePreviews.length) < 5 && (
                       <label className="aspect-square rounded-xl border-2 border-dashed border-neutral-300 hover:border-primary cursor-pointer flex flex-col items-center justify-center gap-2 transition-all bg-neutral-50 hover:bg-neutral-100">
                         <Upload size={32} className="text-neutral-400" />
                         <span className="text-sm text-neutral-600 font-medium">Add Image</span>
@@ -608,11 +733,11 @@ const CreatePostModal = ({ isOpen, onClose }) => {
                         </div>
                       </div>
                     )}
-                    {imagePreviews.length > 0 && (
+                    {(existingImages.length + imagePreviews.length) > 0 && (
                       <div className="flex items-start gap-2">
                         <Upload size={16} className="text-primary mt-0.5 flex-shrink-0" />
                         <div>
-                          <strong>Images:</strong> {imagePreviews.length} photo{imagePreviews.length > 1 ? 's' : ''}
+                          <strong>Images:</strong> {existingImages.length + imagePreviews.length} photo{(existingImages.length + imagePreviews.length) > 1 ? 's' : ''}
                         </div>
                       </div>
                     )}
@@ -644,7 +769,7 @@ const CreatePostModal = ({ isOpen, onClose }) => {
               loading={createPostMutation.isPending}
               icon={Check}
             >
-              Publish Post
+              {isEditMode ? 'Update Post' : 'Publish Post'}
             </Button>
           )}
         </div>

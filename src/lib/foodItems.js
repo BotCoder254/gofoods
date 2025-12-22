@@ -24,7 +24,8 @@ export const createFoodItem = async (data) => {
     deliveryRadiusKm: data.deliveryRadiusKm || 0,
     availableFrom: data.availableFrom || new Date().toISOString(),
     availableUntil: data.availableUntil || null,
-    status: 'active'
+    status: 'active',
+    editCount: 0
   }
 
   console.log('Payload to send:', payload)

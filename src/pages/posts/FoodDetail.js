@@ -4,26 +4,33 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowLeft, Heart, Share2, MapPin, DollarSign, Package, 
   Clock, Truck, Home, User, MessageCircle, ChevronLeft, 
-  ChevronRight, X, Tag, Send
+  ChevronRight, X, Tag, Send, MoreVertical, Edit, Trash2, AlertTriangle
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { getFoodItemById, getFoodImageUrl } from '../../lib/foodItems'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getFoodItemById, getFoodImageUrl, deleteFoodItem, updateFoodItem } from '../../lib/foodItems'
 import { getUserById, getAvatarUrl } from '../../lib/users'
+import { getRequestsByFoodItem } from '../../lib/requests'
 import { useAuth } from '../../context/AuthContext'
 import { Button } from '../../components/common/FormElements'
 import Loader from '../../components/common/Loader'
 import { formatDistance, calculateDistance } from '../../utils/distance'
 import { formatDate } from '../../utils/helpers'
 import RequestModal from '../../components/requests/RequestModal'
+import CreatePostModal from '../../components/posts/CreatePostModal'
 import BookmarkButton from '../../components/bookmarks/BookmarkButton'
+import { toast } from 'react-toastify'
 
 const FoodDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showImageModal, setShowImageModal] = useState(false)
   const [showRequestModal, setShowRequestModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   const { data: item, isLoading } = useQuery({
     queryKey: ['foodItem', id],
@@ -47,6 +54,48 @@ const FoodDetail = () => {
     },
     enabled: !!item?.foodType
   })
+
+  const { data: activeRequests } = useQuery({
+    queryKey: ['foodRequests', id],
+    queryFn: () => getRequestsByFoodItem(id),
+    enabled: !!id && user?.$id === item?.ownerId
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await deleteFoodItem(id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['foodItems'])
+      toast.success('Food item deleted successfully')
+      navigate('/feed')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete item')
+    }
+  })
+
+  const handleDelete = () => {
+    const acceptedRequests = activeRequests?.documents?.filter(r => r.status === 'accepted') || []
+    
+    if (acceptedRequests.length > 0) {
+      toast.error('Cannot delete item with accepted requests. Please complete or cancel them first.')
+      setShowDeleteModal(false)
+      return
+    }
+    
+    deleteMutation.mutate()
+  }
+
+  const handleEdit = () => {
+    const editCount = item.editCount || 0
+    if (editCount >= 3) {
+      toast.error('Maximum edit limit (3) reached for this item')
+      return
+    }
+    setShowOptionsMenu(false)
+    setShowEditModal(true)
+  }
 
   if (isLoading) {
     return <Loader fullScreen />
@@ -174,6 +223,48 @@ const FoodDetail = () => {
                 <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
                   <Share2 size={24} className="text-neutral-700" />
                 </button>
+                {user?.$id === item.ownerId && (
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowOptionsMenu(!showOptionsMenu)}
+                      className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                    >
+                      <MoreVertical size={24} className="text-neutral-700" />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {showOptionsMenu && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-neutral-200 overflow-hidden z-10"
+                        >
+                          <button
+                            onClick={handleEdit}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-neutral-50 transition-colors text-left"
+                          >
+                            <Edit size={18} className="text-neutral-700" />
+                            <span className="text-neutral-900">Edit</span>
+                            {item.editCount >= 3 && (
+                              <span className="ml-auto text-xs text-error">Limit reached</span>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowOptionsMenu(false)
+                              setShowDeleteModal(true)
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-error/10 transition-colors text-left border-t border-neutral-200"
+                          >
+                            <Trash2 size={18} className="text-error" />
+                            <span className="text-error">Delete</span>
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -400,6 +491,66 @@ const FoodDetail = () => {
           foodItem={item}
         />
       )}
+
+      {/* Edit Modal */}
+      {item && (
+        <CreatePostModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          editItem={item}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-error/10 rounded-full">
+                  <AlertTriangle size={24} className="text-error" />
+                </div>
+                <h3 className="text-xl font-bold text-neutral-900" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  Delete Food Item?
+                </h3>
+              </div>
+              
+              <p className="text-neutral-700 mb-6">
+                Are you sure you want to delete this item? This action cannot be undone.
+                {activeRequests?.documents?.some(r => r.status === 'accepted') && (
+                  <span className="block mt-2 text-error font-medium">
+                    ⚠️ You have accepted requests for this item. Please complete or cancel them first.
+                  </span>
+                )}
+              </p>
+              
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  fullWidth
+                  onClick={handleDelete}
+                  loading={deleteMutation.isPending}
+                  className="bg-error hover:bg-error/90"
+                >
+                  Delete
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Similar Items Section */}
       {similarItems && similarItems.length > 0 && (
