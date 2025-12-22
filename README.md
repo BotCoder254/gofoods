@@ -1,45 +1,143 @@
-# GoFoods - Local Food Sharing Marketplace
+<div align="center">
 
-A modern React-based food delivery and restaurant discovery application where users can share, sell, or donate homemade and local food in their area.
+![GoFoods Banner](https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=300&fit=crop&q=80)
 
-## Features
+# 🍿 GoFoods
 
-- 🔐 **Authentication**: Email/password authentication with email verification
-- 👤 **User Profiles**: Customizable profiles with avatar upload and location
-- 📍 **Location Services**: Integrated Mapbox for location-based features
-- 🍽️ **Food Feed**: Browse and discover local food offerings
-- 💬 **Real-time Messaging**: Connect with other users
-- 🔖 **Bookmarks**: Save your favorite posts
-- 📱 **Responsive Design**: Fully mobile-responsive interface
-- 🎨 **Modern UI**: Built with Tailwind CSS and Framer Motion
+### Local Food Sharing Marketplace
 
-## Tech Stack
+*Connect with your community to share, sell, or donate homemade and local food*
 
-- **Frontend**: React 19.2.3
-- **Routing**: React Router DOM 7.11.0
-- **State Management**: TanStack React Query 5.90.12
-- **Backend**: Appwrite 21.5.0 (Auth, Database, Storage)
-- **Maps**: Mapbox GL 3.17.0 + React Map GL 8.1.0
-- **Styling**: Tailwind CSS 3.4.19
-- **Animations**: Framer Motion 12.23.26
+[![React](https://img.shields.io/badge/React-19.2.3-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
+[![Appwrite](https://img.shields.io/badge/Appwrite-21.5.0-F02E65?style=for-the-badge&logo=appwrite&logoColor=white)](https://appwrite.io/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.19-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Mapbox](https://img.shields.io/badge/Mapbox-3.17.0-000000?style=for-the-badge&logo=mapbox&logoColor=white)](https://www.mapbox.com/)
+
+[Live Demo](#) • [Documentation](#) • [Report Bug](#) • [Request Feature](#)
+
+</div>
+
+---
+
+## 📋 Table of Contents
+
+- [About](#-about)
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Screenshots](#-screenshots)
+- [Roadmap](#-roadmap)
+- [Contributing](#-contributing)
+- [License](#-license)
+- [Contact](#-contact)
+
+---
+
+## 🎯 About
+
+**GoFoods** is a modern, community-driven food sharing platform that empowers individuals to monetize homemade food, share surplus meals, and build a sustainable local food economy. Built with cutting-edge technologies, GoFoods provides a seamless experience for discovering and sharing food in your neighborhood.
+
+### Why GoFoods?
+
+- 🌱 **Sustainable** - Reduce food waste through donation and sharing
+- 🤝 **Community-Driven** - Connect with neighbors and local food providers
+- 💰 **Monetize** - Turn your cooking skills into income
+- 🔒 **Safe & Secure** - User verification and real-time tracking
+- 📱 **Mobile-First** - Fully responsive design for all devices
+
+---
+
+## ✨ Features
+
+### 🔐 Authentication & Security
+- Email/password authentication with verification
+- Protected routes and role-based access
+- Secure session management
+
+### 👤 User Profiles
+- Customizable profiles with avatar upload
+- Location-based user discovery
+- Bio, phone, and contact information
+
+### 📍 Location Services
+- **Mapbox Standard Integration** - Uber-like maps
+- Interactive map view of food offerings
+- Real-time location tracking
+- Route planning and directions
+- Distance calculation
+
+### 🍽️ Food Marketplace
+- Browse local food offerings in feed view
+- Create and manage food posts with images
+- Categorize items (homemade, restaurant, bakery, etc.)
+- Set pricing or mark as donation/free
+- Track post status (available/sold/donated)
+
+### 💬 Real-time Communication
+- Live messaging between users
+- Request system for food items
+- Notifications for messages and updates
+- User-to-user interactions
+
+### 🛡️ Safety Features
+- **Live Trip Sharing** - Share real-time location with trusted contacts
+- **Route Replay** - Review completed trips with animated playback
+- **Delivery History** - Track all past deliveries
+- Emergency contact integration
+
+### 🎨 Modern UI/UX
+- Tailwind CSS for beautiful, responsive design
+- Framer Motion for smooth animations
+- Lucide React icons
+- Dark mode support
+- Mobile-optimized interface
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| React | 19.2.3 | UI Framework |
+| React Router DOM | 7.11.0 | Client-side routing |
+| TanStack Query | 5.90.12 | Server state management |
+| Tailwind CSS | 3.4.19 | Styling framework |
+| Framer Motion | 12.23.26 | Animations |
+| React Hook Form | 7.69.0 | Form management |
+| Zod | 4.2.1 | Schema validation |
+
+### Backend & Services
+| Service | Version | Purpose |
+|---------|---------|---------|
+| Appwrite | 21.5.0 | Backend-as-a-Service |
+| Mapbox GL | 3.17.0 | Maps & Location |
+| React Map GL | 8.1.0 | React Mapbox wrapper |
+
+### UI Components
 - **Icons**: Lucide React 0.562.0
-- **Forms**: React Hook Form 7.69.0 + Zod 4.2.1
 - **Notifications**: React Toastify 11.0.5
+- **Date Handling**: date-fns 4.1.0
+- **Testing**: React Testing Library
 
-## Getting Started
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- npm or yarn
-- Appwrite account and project
-- Mapbox account and access token
+Before you begin, ensure you have the following installed:
+- **Node.js** (v16 or higher)
+- **npm** or **yarn**
+- **Appwrite** account ([Sign up](https://appwrite.io/))
+- **Mapbox** account ([Sign up](https://www.mapbox.com/))
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/yourusername/gofoods.git
    cd gofoods
    ```
 
@@ -50,162 +148,262 @@ A modern React-based food delivery and restaurant discovery application where us
 
 3. **Set up environment variables**
    
-   Copy `.env.example` to `.env`:
+   Create a `.env` file in the root directory:
    ```bash
    cp .env.example .env
    ```
 
-   Fill in your credentials:
+   Update with your credentials:
    ```env
    REACT_APP_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
    REACT_APP_APPWRITE_PROJECT_ID=your_project_id
    REACT_APP_APPWRITE_DATABASE_ID=your_database_id
    REACT_APP_APPWRITE_USERS_COLLECTION_ID=users
-   REACT_APP_APPWRITE_POSTS_COLLECTION_ID=posts
+   REACT_APP_APPWRITE_POSTS_COLLECTION_ID=fooditems
+   REACT_APP_APPWRITE_FOODS_COLLECTION_ID=fooditems
    REACT_APP_APPWRITE_REQUESTS_COLLECTION_ID=requests
    REACT_APP_APPWRITE_MESSAGES_COLLECTION_ID=messages
    REACT_APP_APPWRITE_BOOKMARKS_COLLECTION_ID=bookmarks
-   REACT_APP_APPWRITE_STORAGE_BUCKET_ID=avatars
+   REACT_APP_APPWRITE_NOTIFICATIONS_COLLECTION_ID=notifications
+   REACT_APP_APPWRITE_STORAGE_BUCKET_ID=your_bucket_id
    REACT_APP_MAPBOX_TOKEN=your_mapbox_token
    ```
 
-### Appwrite Setup
+4. **Set up Appwrite**
 
-1. **Create a new Appwrite project**
+   Create the following collections in your Appwrite database:
 
-2. **Create a Database** with the following collections:
+   <details>
+   <summary><b>Users Collection</b></summary>
 
-   **Users Collection**:
-   - `email` (string, required)
-   - `displayName` (string, required)
-   - `avatarFileId` (string, optional)
-   - `bio` (string, optional)
-   - `phone` (string, optional)
-   - `location` (object: {lat, lng, placeName}, optional)
-   - `role` (enum: user/admin/moderator, required, default: user)
-   - `isVerified` (boolean, default: false)
-   - `createdAt` (datetime, required)
+   | Attribute | Type | Required | Default |
+   |-----------|------|----------|---------|
+   | email | string | ✅ | - |
+   | displayName | string | ✅ | - |
+   | avatarFileId | string | ❌ | null |
+   | bio | string | ❌ | null |
+   | phone | string | ❌ | null |
+   | location | string | ❌ | null |
+   | role | enum | ✅ | user |
+   | isVerified | boolean | ✅ | false |
+   | createdAt | datetime | ✅ | now() |
 
-   **Posts Collection** (for future implementation):
-   - `userId` (string, required)
-   - `title` (string, required)
-   - `description` (string, required)
-   - `images` (array of file IDs)
-   - `category` (enum)
-   - `price` (number)
-   - `location` (object)
-   - `status` (enum: available/sold/donated)
-   - `createdAt` (datetime)
+   </details>
 
-   **Messages Collection** (for future implementation):
-   - `senderId` (string, required)
-   - `receiverId` (string, required)
-   - `content` (string, required)
-   - `read` (boolean, default: false)
-   - `createdAt` (datetime)
+   <details>
+   <summary><b>Food Items Collection</b></summary>
 
-   **Bookmarks Collection** (for future implementation):
-   - `userId` (string, required)
-   - `postId` (string, required)
-   - `createdAt` (datetime)
+   | Attribute | Type | Required | Default |
+   |-----------|------|----------|---------|
+   | ownerId | string | ✅ | - |
+   | title | string | ✅ | - |
+   | description | string | ✅ | - |
+   | images | string | ✅ | "[]" |
+   | foodType | enum | ✅ | - |
+   | tags | string | ✅ | "[]" |
+   | quantity | integer | ✅ | 1 |
+   | price | float | ✅ | 0 |
+   | isDonation | boolean | ✅ | false |
+   | pickup | boolean | ✅ | true |
+   | delivery | boolean | ✅ | false |
+   | pickupAddress | string | ❌ | null |
+   | deliveryRadiusKm | integer | ✅ | 0 |
+   | status | enum | ✅ | active |
+   | liveLocation | string | ❌ | null |
 
-3. **Create a Storage Bucket** for avatars and food images
+   </details>
 
-4. **Enable Email/Password Authentication** in Appwrite Console
+   <details>
+   <summary><b>Requests Collection</b></summary>
 
-5. **Set up permissions** for each collection (read/write access)
+   | Attribute | Type | Required | Default |
+   |-----------|------|----------|---------|
+   | foodItemId | string | ✅ | - |
+   | requesterId | string | ✅ | - |
+   | ownerId | string | ✅ | - |
+   | message | string | ❌ | "" |
+   | status | enum | ✅ | pending |
+   | pickupOrDelivery | enum | ✅ | pickup |
+   | handoffPoint | string | ❌ | null |
+   | shareEnabled | boolean | ✅ | false |
+   | shareToken | string | ❌ | null |
+   | routePath | string | ✅ | "[]" |
+   | completedAt | datetime | ❌ | null |
 
-### Mapbox Setup
+   </details>
 
-1. Create a Mapbox account at https://www.mapbox.com/
-2. Get your access token from the dashboard
-3. Add it to your `.env` file
+5. **Create Storage Bucket**
+   - Create a bucket for avatars and food images
+   - Set appropriate permissions (read/write)
 
-### Running the Application
+6. **Run the application**
+   ```bash
+   npm start
+   ```
 
-```bash
-npm start
-```
+   The app will open at [http://localhost:3000](http://localhost:3000)
 
-The app will open at [http://localhost:3000](http://localhost:3000)
+---
 
-## Available Scripts
-
-- `npm start` - Run development server
-- `npm test` - Run tests
-- `npm run build` - Build for production
-- `npm run eject` - Eject from Create React App (one-way operation)
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 gofoods/
-├── public/              # Static files
+├── public/                      # Static assets
+│   ├── index.html              # HTML template
+│   └── manifest.json           # PWA manifest
 ├── src/
-│   ├── components/      # Reusable components
-│   │   ├── common/      # Common UI components
-│   │   ├── layout/      # Layout components (Sidebar, Topbar)
-│   │   ├── auth/        # Auth-related components
-│   │   └── profile/     # Profile components
-│   ├── config/          # Configuration files
-│   ├── context/         # React Context providers
-│   ├── hooks/           # Custom React hooks
-│   ├── lib/             # API functions
-│   ├── pages/           # Page components
-│   │   ├── auth/        # Login, Register
-│   │   ├── feed/        # Feed page
-│   │   ├── profile/     # Profile pages
-│   │   └── ...
-│   ├── utils/           # Utility functions
-│   ├── App.js           # Main app component
-│   └── index.js         # Entry point
-├── .env.example         # Environment variables template
-└── package.json         # Dependencies
+│   ├── components/             # Reusable components
+│   │   ├── bookmarks/          # Bookmark components
+│   │   ├── common/             # Shared UI components
+│   │   ├── layout/             # Layout (Sidebar, Topbar)
+│   │   ├── map/                # Map components
+│   │   ├── notifications/      # Notification components
+│   │   ├── posts/              # Food post components
+│   │   ├── profile/            # Profile components
+│   │   └── requests/           # Request components
+│   ├── config/                 # Configuration files
+│   │   ├── appwrite.js         # Appwrite setup
+│   │   └── mapbox.js           # Mapbox configuration
+│   ├── context/                # React Context
+│   │   └── AuthContext.js      # Authentication context
+│   ├── lib/                    # API functions
+│   │   ├── bookmarks.js        # Bookmark operations
+│   │   ├── foodItems.js        # Food item operations
+│   │   ├── messages.js         # Messaging functions
+│   │   ├── notifications.js    # Notification functions
+│   │   ├── requests.js         # Request operations
+│   │   └── users.js            # User operations
+│   ├── pages/                  # Page components
+│   │   ├── auth/               # Authentication pages
+│   │   ├── bookmarks/          # Bookmarks page
+│   │   ├── feed/               # Main feed
+│   │   ├── history/            # Delivery history
+│   │   ├── map/                # Map view
+│   │   ├── messages/           # Messaging
+│   │   ├── posts/              # Food detail pages
+│   │   ├── profile/            # User profiles
+│   │   ├── requests/           # Request management
+│   │   └── shared/             # Shared trip view
+│   ├── utils/                  # Utility functions
+│   ├── App.js                  # Main app component
+│   └── index.js                # Entry point
+├── .env.example                # Environment template
+├── .gitignore                  # Git ignore rules
+├── package.json                # Dependencies
+├── tailwind.config.js          # Tailwind configuration
+└── README.md                   # This file
 ```
 
-## Features Implementation Status
+---
 
-- ✅ Authentication (Login/Register)
-- ✅ Email Verification
-- ✅ User Profile Management
-- ✅ Avatar Upload
-- ✅ Location Picker with Mapbox
-- ✅ Responsive Sidebar Navigation
-- ✅ Protected Routes
-- ⏳ Food Posts (Coming Soon)
-- ⏳ Map View (Coming Soon)
-- ⏳ Messaging (Coming Soon)
-- ⏳ Bookmarks (Coming Soon)
-- ⏳ Admin Panel (Coming Soon)
+## 📸 Screenshots
 
-## Design System
+<div align="center">
 
-### Colors
-- **Primary**: #FF5136 (Appwrite Red)
-- **Secondary**: #3B82F6 (Blue)
-- **Accent**: #10B981 (Green)
-- **Neutral**: 50-900 scale
-- **Error**: #EF4444
-- **Warning**: #F59E0B
-- **Success**: #10B981
+### Feed View
+![Feed](https://via.placeholder.com/800x500/FF5136/FFFFFF?text=Feed+View)
 
-### Fonts
-- **Headings**: Poppins
-- **Body**: Inter
-- **Additional**: Montserrat, Roboto, Open Sans
+### Map View with Live Tracking
+![Map](https://via.placeholder.com/800x500/3B82F6/FFFFFF?text=Map+View)
 
-## Contributing
+### Route Replay
+![Route Replay](https://via.placeholder.com/800x500/10B981/FFFFFF?text=Route+Replay)
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+### User Profile
+![Profile](https://via.placeholder.com/800x500/F59E0B/FFFFFF?text=User+Profile)
+
+</div>
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Completed
+- [x] Authentication & Email Verification
+- [x] User Profile Management
+- [x] Food Posts Creation & Management
+- [x] Location Services with Mapbox
+- [x] Real-time Messaging
+- [x] Bookmarks System
+- [x] Request Management
+- [x] Live Location Tracking
+- [x] Safety Share (Trip Sharing)
+- [x] Delivery History & Route Replay
+
+### 🚧 In Progress
+- [ ] Admin Panel
+- [ ] Rating & Review System
+- [ ] Payment Integration
+
+### 📅 Planned
+- [ ] Push Notifications
+- [ ] Advanced Search & Filters
+- [ ] Social Features (Follow, Like, Comment)
+- [ ] Recipe Sharing
+- [ ] Meal Planning
+- [ ] Dietary Preferences & Filters
+- [ ] Multi-language Support
+- [ ] Dark Mode
+- [ ] Progressive Web App (PWA)
+- [ ] Mobile Apps (iOS & Android)
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make the open-source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## License
+### Development Guidelines
 
-This project is licensed under the MIT License.
+- Follow the existing code style
+- Write meaningful commit messages
+- Add tests for new features
+- Update documentation as needed
+- Ensure all tests pass before submitting PR
 
-## Support
+---
 
-For support, email support@gofoods.com or open an issue in the repository.
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## 📞 Contact
+
+**Project Maintainer** - [@yourusername](https://twitter.com/yourusername)
+
+**Project Link** - [https://github.com/yourusername/gofoods](https://github.com/yourusername/gofoods)
+
+**Email** - support@gofoods.com
+
+---
+
+## 🙏 Acknowledgments
+
+- [React](https://reactjs.org/)
+- [Appwrite](https://appwrite.io/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Mapbox](https://www.mapbox.com/)
+- [Lucide Icons](https://lucide.dev/)
+- [Framer Motion](https://www.framer.com/motion/)
+- [Unsplash](https://unsplash.com/) for images
+
+---
+
+<div align="center">
+
+**Made with ❤️ by the GoFoods Team**
+
+⭐ Star us on GitHub — it helps!
+
+[Website](#) • [Documentation](#) • [Twitter](#) • [Discord](#)
+
+</div>
