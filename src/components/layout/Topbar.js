@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import CreatePostModal from '../posts/CreatePostModal'
 import NotificationDropdown from '../notifications/NotificationDropdown'
 import SearchModal from '../common/SearchModal'
+import { toast } from 'react-toastify'
 
 const Topbar = ({ onMenuClick, onSearch }) => {
   const { user } = useAuth()
@@ -40,13 +41,23 @@ const Topbar = ({ onMenuClick, onSearch }) => {
         {/* Right Side Actions */}
         <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
           {/* Create Post Button - Desktop */}
-          <button
-            onClick={() => setShowCreatePost(true)}
-            className="hidden md:flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all font-medium whitespace-nowrap"
-          >
-            <PlusCircle size={20} />
-            <span>Create Post</span>
-          </button>
+          {user?.isVerified ? (
+            <button
+              onClick={() => setShowCreatePost(true)}
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-xl hover:bg-accent/90 transition-all font-medium whitespace-nowrap"
+            >
+              <PlusCircle size={20} />
+              <span>Create Post</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => toast.info('Please verify your email to create posts')}
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-neutral-300 text-neutral-500 rounded-xl cursor-not-allowed font-medium whitespace-nowrap"
+            >
+              <PlusCircle size={20} />
+              <span>Create Post</span>
+            </button>
+          )}
 
           {/* Notifications */}
           <NotificationDropdown />

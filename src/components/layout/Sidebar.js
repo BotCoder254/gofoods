@@ -146,12 +146,23 @@ const Sidebar = ({ isOpen, onClose }) => {
 
       {/* Floating Create Button - Desktop & Mobile (hidden on chat page) */}
       {!location.pathname.startsWith('/chat') && (
-        <button
-          onClick={() => setShowCreatePost(true)}
-          className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all hover:scale-110"
-        >
-          <PlusCircle size={28} />
-        </button>
+        <>
+          {user?.isVerified ? (
+            <button
+              onClick={() => setShowCreatePost(true)}
+              className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-warning hover:bg-warning/90 text-white rounded-full shadow-2xl flex items-center justify-center z-50 transition-all hover:scale-110"
+            >
+              <PlusCircle size={28} />
+            </button>
+          ) : (
+            <button
+              onClick={() => toast.info('Please verify your email to create posts')}
+              className="fixed bottom-24 lg:bottom-8 right-6 w-16 h-16 bg-neutral-300 text-neutral-500 rounded-full shadow-2xl flex items-center justify-center z-50 cursor-not-allowed"
+            >
+              <PlusCircle size={28} />
+            </button>
+          )}
+        </>
       )}
 
       {/* Create Post Modal */}

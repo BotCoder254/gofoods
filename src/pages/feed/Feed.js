@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query'
 import { useOutletContext } from 'react-router-dom'
 import { getFoodItems } from '../../lib/foodItems'
 import { calculateDistance } from '../../utils/distance'
-import EmailVerificationBanner from '../../components/common/EmailVerificationBanner'
 import FoodCard from '../../components/posts/FoodCard'
 import Loader from '../../components/common/Loader'
 import { Link } from 'react-router-dom'
@@ -89,9 +88,6 @@ const Feed = () => {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Email Verification Banner */}
-      <EmailVerificationBanner user={user} onVerified={refetchUser} />
-
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

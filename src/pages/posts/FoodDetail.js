@@ -456,21 +456,43 @@ const FoodDetail = () => {
           <div className="flex gap-3 pt-4">
             {user?.$id !== item.ownerId ? (
               <>
-                <Button 
-                  variant="primary" 
-                  fullWidth 
-                  icon={Send}
-                  onClick={() => setShowRequestModal(true)}
-                >
-                  Request Item
-                </Button>
-                <Button 
-                  variant="outline" 
-                  icon={MessageCircle}
-                  onClick={() => setShowRequestModal(true)}
-                >
-                  Message
-                </Button>
+                {user?.isVerified ? (
+                  <>
+                    <Button 
+                      variant="primary" 
+                      fullWidth 
+                      icon={Send}
+                      onClick={() => setShowRequestModal(true)}
+                    >
+                      Request Item
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      icon={MessageCircle}
+                      onClick={() => setShowRequestModal(true)}
+                    >
+                      Message
+                    </Button>
+                  </>
+                ) : (
+                  <div className="w-full p-4 bg-warning/10 border border-warning rounded-xl text-center">
+                    <p className="text-warning font-medium mb-2">Please verify your email to request items</p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { account } = await import('../../config/appwrite')
+                          await account.createVerification(`${window.location.origin}/verify-email`)
+                          toast.success('Verification email sent! Please check your inbox.')
+                        } catch (error) {
+                          toast.error(error.message || 'Failed to send verification email')
+                        }
+                      }}
+                      className="text-sm text-primary hover:underline font-medium"
+                    >
+                      Click here to verify email
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <div className="w-full p-4 bg-neutral-100 rounded-xl text-center text-neutral-600">
