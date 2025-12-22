@@ -281,14 +281,24 @@ const FoodDetail = () => {
                 <div className="flex-1">
                   <div className="font-bold text-neutral-900">{owner.displayName}</div>
                   <div className="text-sm text-neutral-600">
-                    Member since {formatDate(owner.createdAt)}
+                    Member since {formatDate(owner.$createdAt)}
                   </div>
                 </div>
-                <Link to={`/profile/${owner.$id}`}>
-                  <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
-                    <User size={20} />
+                {user?.$id === owner.$id ? (
+                  <Link to="/profile">
+                    <button className="p-2 hover:bg-neutral-100 rounded-lg transition-colors">
+                      <User size={20} />
+                    </button>
+                  </Link>
+                ) : (
+                  <button 
+                    onClick={() => setShowRequestModal(true)}
+                    className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
+                    title="Contact seller"
+                  >
+                    <MessageCircle size={20} />
                   </button>
-                </Link>
+                )}
               </div>
             </div>
           )}
