@@ -70,13 +70,14 @@ const Bookmarks = () => {
 }
 
 const BookmarkedFoodCard = ({ foodItemId, index }) => {
-  const { data: item, isLoading } = useQuery({
+  const { data: item, isLoading, isError } = useQuery({
     queryKey: ['foodItem', foodItemId],
-    queryFn: () => getFoodItemById(foodItemId)
+    queryFn: () => getFoodItemById(foodItemId),
+    retry: false
   })
 
   if (isLoading) return <div className="h-64 bg-neutral-100 rounded-xl animate-pulse" />
-  if (!item) return null
+  if (isError || !item) return null
 
   return <FoodCard item={item} index={index} />
 }

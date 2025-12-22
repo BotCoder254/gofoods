@@ -36,3 +36,17 @@ export const checkBookmark = async (userId, foodItemId) => {
 export const deleteBookmark = async (bookmarkId) => {
   return await databases.deleteDocument(DATABASE_ID, BOOKMARKS_COLLECTION_ID, bookmarkId)
 }
+
+export const deleteBookmarksByFoodItem = async (foodItemId) => {
+  const queries = [
+    Query.equal('foodItemId', foodItemId),
+    Query.limit(100)
+  ]
+  const result = await databases.listDocuments(DATABASE_ID, BOOKMARKS_COLLECTION_ID, queries)
+  
+  const deletePromises = result.documents.map(bookmark => 
+    databases.deleteDocument(DATABASE_ID, BOOKMARKS_COLLECTION_ID, bookmark.$id)
+  )
+  
+  return await Promise.all(deletePromises)
+}

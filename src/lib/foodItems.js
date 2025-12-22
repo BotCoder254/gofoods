@@ -1,5 +1,6 @@
 import { databases, storage, DATABASE_ID, FOODS_COLLECTION_ID, STORAGE_BUCKET_ID, Query } from '../config/appwrite'
 import { ID } from 'appwrite'
+import { deleteBookmarksByFoodItem } from './bookmarks'
 
 export const createFoodItem = async (data) => {
   console.log('Creating food item with data:', data)
@@ -82,6 +83,7 @@ export const updateFoodItem = async (itemId, data) => {
 }
 
 export const deleteFoodItem = async (itemId) => {
+  await deleteBookmarksByFoodItem(itemId)
   return await databases.deleteDocument(DATABASE_ID, FOODS_COLLECTION_ID, itemId)
 }
 

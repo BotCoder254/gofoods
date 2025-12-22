@@ -164,12 +164,13 @@ const Requests = () => {
 
 const RequestCard = ({ request, isIncoming, onAccept, onReject, onCollected, isUpdating }) => {
   const navigate = useNavigate()
-  const { data: foodItem } = useQuery({
+  const { data: foodItem, isError } = useQuery({
     queryKey: ['foodItem', request.foodItemId],
-    queryFn: () => getFoodItemById(request.foodItemId)
+    queryFn: () => getFoodItemById(request.foodItemId),
+    retry: false
   })
 
-  if (!foodItem) return null
+  if (isError || !foodItem) return null
 
   return (
     <motion.div
