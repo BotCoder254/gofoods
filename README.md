@@ -87,7 +87,7 @@
   <tr>
     <td width="50%">
       <img src="media/Screenshot From 2025-12-23 02-52-54.png" alt="Create Account" />
-      <p align="center"><b>Create Account</b></p>
+      <p align="center"><b>Saftey Check-in</b></p>
     </td>
     <td width="50%">
       <img src="" alt="" />
