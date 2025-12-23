@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, MapPin, DollarSign, User } from 'lucide-react'
+import { Search, X, MapPin, DollarSign, User, ChefHat, Clock, MessageCircle } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { searchFoodItems, getFoodImageUrl } from '../../lib/foodItems'
 import { searchUsers, getAvatarUrl } from '../../lib/users'
+import { searchRecipes, getRecipeImageUrl } from '../../lib/recipes'
 import Loader from '../common/Loader'
 
 const SearchModal = ({ isOpen, onClose }) => {
@@ -22,6 +23,12 @@ const SearchModal = ({ isOpen, onClose }) => {
     queryKey: ['search', 'users', searchQuery],
     queryFn: () => searchUsers(searchQuery),
     enabled: searchQuery.length > 0 && activeTab === 'users'
+  })
+
+  const { data: recipeResults = [], isLoading: loadingRecipes } = useQuery({
+    queryKey: ['search', 'recipes', searchQuery],
+    queryFn: () => searchRecipes(searchQuery),
+    enabled: searchQuery.length > 0 && activeTab === 'recipes'
   })
 
   useEffect(() => {
@@ -45,8 +52,13 @@ const SearchModal = ({ isOpen, onClose }) => {
     onClose()
   }
 
-  const isLoading = activeTab === 'food' ? loadingFood : loadingUsers
-  const results = activeTab === 'food' ? foodResults : userResults
+  const handleRecipeClick = (recipeId) => {
+    navigate(`/recipe/${recipeId}`)
+    onClose()
+  }
+
+  const isLoading = activeTab === 'food' ? loadingFood : activeTab === 'users' ? loadingUsers : loadingRecipes
+  const results = activeTab === 'food' ? foodResults : activeTab === 'users' ? userResults : recipeResults
 
   return (
     <AnimatePresence>
@@ -77,7 +89,7 @@ const SearchModal = ({ isOpen, onClose }) => {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for food or users..."
+                    placeholder="Search for food, recipes or users..."
                     autoFocus
                     className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-neutral-200 focus:border-primary outline-none transition-all"
                     style={{ fontFamily: 'Inter, sans-serif' }}
@@ -101,7 +113,17 @@ const SearchModal = ({ isOpen, onClose }) => {
                       : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                   }`}
                 >
-                  Food Items
+                  Food
+                </button>
+                <button
+                  onClick={() => setActiveTab('recipes')}
+                  className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                    activeTab === 'recipes'
+                      ? 'bg-primary text-white'
+                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                  }`}
+                >
+                  Recipes
                 </button>
                 <button
                   onClick={() => setActiveTab('users')}
@@ -170,6 +192,37 @@ const SearchModal = ({ isOpen, onClose }) => {
                                 <span className="truncate">{item.pickupAddress.placeName}</span>
                               </div>
                             )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {activeTab === 'recipes' && recipeResults.map((recipe) => (
+                    <motion.div
+                      key={recipe.$id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      onClick={() => handleRecipeClick(recipe.$id)}
+                      className="p-4 hover:bg-neutral-50 cursor-pointer transition-colors"
+                    >
+                      <div className="flex gap-4">
+                        <img
+                          src={recipe.imageId ? getRecipeImageUrl(recipe.imageId, 100, 100) : 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=100&h=100&fit=crop'}
+                          alt={recipe.title}
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-bold text-neutral-900 truncate">{recipe.title}</h3>
+                          <div className="flex items-center gap-3 mt-1 text-sm text-neutral-600">
+                            <div className="flex items-center gap-1">
+                              <Clock size={14} />
+                              <span>{recipe.cookTimeMinutes} min</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <ChefHat size={14} />
+                              <span>{recipe.cookTimeMinutes < 30 ? 'Easy' : recipe.cookTimeMinutes < 60 ? 'Medium' : 'Hard'}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
