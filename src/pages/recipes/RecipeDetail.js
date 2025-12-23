@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
 import { Button } from '../../components/common/FormElements'
 import RecipeComments from '../../components/recipes/RecipeComments'
+import LinkedFoodItems from '../../components/recipes/LinkedFoodItems'
 import { toast } from 'react-toastify'
 
 const RecipeDetail = () => {
@@ -170,17 +171,19 @@ const RecipeDetail = () => {
                   <LinkIcon size={18} />
                   <span className="font-bold">Linked Food Item</span>
                 </div>
-                <p className="text-sm text-neutral-600">
+                <p className="text-sm text-neutral-600 mb-3">
                   This recipe is linked to a food item available for purchase or sharing.
                 </p>
                 <Link
                   to={`/food/${recipe.linkedFoodItemId}`}
-                  className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors text-sm font-medium"
                 >
                   View Food Item
                 </Link>
               </div>
             )}
+
+            <LinkedFoodItems recipeId={id} linkedFoodItemId={recipe.linkedFoodItemId} />
 
             <div className="grid md:grid-cols-2 gap-8 mb-8">
               <div>

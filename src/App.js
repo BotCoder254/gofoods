@@ -28,6 +28,7 @@ import DeliveryHistory from './pages/history/DeliveryHistory'
 import RouteReplay from './pages/history/RouteReplay'
 import Recipes from './pages/recipes/Recipes'
 import RecipeDetail from './pages/recipes/RecipeDetail'
+import MyRecipes from './pages/myrecipes/MyRecipes'
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -113,6 +114,7 @@ function App() {
           <Route path="history/route/:requestId" element={<RouteReplay />} />
           <Route path="recipes" element={<Recipes />} />
           <Route path="recipe/:id" element={<RecipeDetail />} />
+          <Route path="my-recipes" element={<MyRecipes />} />
           <Route path="profile" element={<Profile />} />
           <Route path="profile/edit" element={<ProfileEdit />} />
         </Route>

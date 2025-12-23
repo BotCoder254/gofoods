@@ -18,7 +18,8 @@ import {
   Popcorn,
   ClipboardList,
   History,
-  ChefHat
+  ChefHat,
+  BookOpen
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getAvatarUrl } from '../../lib/users'
@@ -35,6 +36,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/feed', icon: Home, label: 'Feed', badge: null },
     { path: '/map', icon: Map, label: 'Map', badge: null },
     { path: '/recipes', icon: ChefHat, label: 'Recipes', badge: null },
+    { path: '/my-recipes', icon: BookOpen, label: 'My Recipes', badge: null },
     { path: '/requests', icon: ClipboardList, label: 'Requests', badge: null },
     { path: '/history', icon: History, label: 'History', badge: null },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', badge: null },
