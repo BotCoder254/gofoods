@@ -74,6 +74,26 @@
       <p align="center"><b>Signing Page</b></p>
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-35-18.png" alt="Request Food" />
+      <p align="center"><b>Request Food</b></p>
+    </td>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-51-47.png" alt="Chat Page" />
+      <p align="center"><b>Chat Page</b></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 02-52-54.png" alt="Create Account" />
+      <p align="center"><b>Create Account</b></p>
+    </td>
+    <td width="50%">
+      <img src="" alt="" />
+      <p align="center"><b></b></p>
+    </td>
+  </tr>
 </table>
 
 </div>
