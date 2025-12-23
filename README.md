@@ -90,8 +90,8 @@
       <p align="center"><b>Saftey Check-in</b></p>
     </td>
     <td width="50%">
-      <img src="" alt="" />
-      <p align="center"><b></b></p>
+      <img src="media/Screenshot From 2025-12-23 03-48-16.png" alt="" />
+      <p align="center">Create Recipes<b></b></p>
     </td>
   </tr>
 </table>
