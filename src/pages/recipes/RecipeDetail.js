@@ -8,6 +8,7 @@ import { getUserById, getAvatarUrl } from '../../lib/users'
 import { useAuth } from '../../context/AuthContext'
 import Loader from '../../components/common/Loader'
 import { Button } from '../../components/common/FormElements'
+import RecipeComments from '../../components/recipes/RecipeComments'
 import { toast } from 'react-toastify'
 
 const RecipeDetail = () => {
@@ -222,6 +223,8 @@ const RecipeDetail = () => {
             </div>
           </div>
         </div>
+
+        <RecipeComments recipeId={id} />
       </motion.div>
     </div>
   )

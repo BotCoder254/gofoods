@@ -1,10 +1,31 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Clock, Users, ChefHat, Link as LinkIcon } from 'lucide-react'
+import { Clock, Users, ChefHat, Link as LinkIcon, MessageCircle, Lock } from 'lucide-react'
 import { getRecipeImageUrl } from '../../lib/recipes'
+import { useQuery } from '@tanstack/react-query'
+import { getRecipeComments } from '../../lib/recipeComments'
+import { getUserById, getAvatarUrl } from '../../lib/users'
+import { useAuth } from '../../context/AuthContext'
+import { formatDistanceToNow } from 'date-fns'
 
 const RecipeCard = ({ recipe, index }) => {
+  const { user } = useAuth()
+  
+  const { data: comments = [] } = useQuery({
+    queryKey: ['recipeComments', recipe.$id],
+    queryFn: () => getRecipeComments(recipe.$id)
+  })
+
+  const latestComment = comments[0]
+  const isOwner = user?.$id === recipe.userId
+
+  const { data: commentAuthor } = useQuery({
+    queryKey: ['user', latestComment?.userId],
+    queryFn: () => getUserById(latestComment.userId),
+    enabled: !!latestComment?.userId
+  })
+  
   const coverImage = recipe.imageId
     ? getRecipeImageUrl(recipe.imageId, 400, 400)
     : 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=400&h=400&fit=crop'
@@ -31,6 +52,12 @@ const RecipeCard = ({ recipe, index }) => {
                   Linked
                 </span>
               )}
+              {recipe.visibility === 'private' && isOwner && (
+                <span className="px-3 py-1 bg-neutral-800 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                  <Lock size={12} />
+                  Private
+                </span>
+              )}
             </div>
           </div>
 
@@ -45,6 +72,23 @@ const RecipeCard = ({ recipe, index }) => {
               </p>
             )}
 
+            {latestComment && commentAuthor && (
+              <div className="mb-3 p-2 bg-neutral-50 rounded-lg">
+                <div className="flex items-center gap-2 mb-1">
+                  <img
+                    src={commentAuthor.avatarFileId ? getAvatarUrl(commentAuthor.avatarFileId) : `https://ui-avatars.com/api/?name=${commentAuthor.displayName}&background=FF5136&color=fff`}
+                    alt={commentAuthor.displayName}
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                  <span className="text-xs font-medium text-neutral-700">{commentAuthor.displayName}</span>
+                  <span className="text-xs text-neutral-500">
+                    {latestComment.$createdAt && formatDistanceToNow(new Date(latestComment.$createdAt), { addSuffix: true })}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-700 line-clamp-1 pl-7">{latestComment.content}</p>
+              </div>
+            )}
+
             <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1 text-sm text-neutral-600">
@@ -56,6 +100,13 @@ const RecipeCard = ({ recipe, index }) => {
                   <div className="flex items-center gap-1 text-sm text-neutral-600">
                     <Users size={16} className="text-secondary" />
                     <span>{recipe.servings}</span>
+                  </div>
+                )}
+
+                {comments.length > 0 && (
+                  <div className="flex items-center gap-1 text-sm text-neutral-600">
+                    <MessageCircle size={16} className="text-accent" />
+                    <span>{comments.length}</span>
                   </div>
                 )}
               </div>

@@ -17,7 +17,8 @@ export const createRecipe = async (data) => {
     cookTimeMinutes: data.cookTimeMinutes,
     servings: data.servings || null,
     imageId: data.imageId || null,
-    linkedFoodItemId: data.linkedFoodItemId || null
+    linkedFoodItemId: data.linkedFoodItemId || null,
+    visibility: data.visibility || 'public'
   }
 
   return await databases.createDocument(
@@ -33,6 +34,8 @@ export const getRecipes = async (filters = {}) => {
   
   if (filters.userId) {
     queries.push(Query.equal('userId', filters.userId))
+  } else {
+    queries.push(Query.equal('visibility', 'public'))
   }
 
   if (filters.cookTimeMax) {

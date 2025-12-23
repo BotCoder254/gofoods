@@ -23,7 +23,8 @@ const CreateRecipeModal = ({ isOpen, onClose }) => {
     steps: [''],
     cookTimeMinutes: '',
     servings: '',
-    linkedFoodItemId: ''
+    linkedFoodItemId: '',
+    visibility: 'public'
   })
 
   const [imageFile, setImageFile] = useState(null)
@@ -44,7 +45,8 @@ const CreateRecipeModal = ({ isOpen, onClose }) => {
         steps: [''],
         cookTimeMinutes: '',
         servings: '',
-        linkedFoodItemId: ''
+        linkedFoodItemId: '',
+        visibility: 'public'
       })
       setImageFile(null)
       setImagePreview(null)
@@ -76,7 +78,8 @@ const CreateRecipeModal = ({ isOpen, onClose }) => {
         cookTimeMinutes: parseInt(data.cookTimeMinutes),
         servings: data.servings ? parseInt(data.servings) : null,
         imageId: uploadedImageId,
-        linkedFoodItemId: data.linkedFoodItemId || null
+        linkedFoodItemId: data.linkedFoodItemId || null,
+        visibility: data.visibility
       }
 
       return await createRecipe(payload)
@@ -405,6 +408,42 @@ const CreateRecipeModal = ({ isOpen, onClose }) => {
                   <p className="mt-2 text-sm text-neutral-600">
                     Link this recipe to a food item you're selling or sharing
                   </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-3">
+                    Visibility
+                  </label>
+                  <div className="flex gap-3">
+                    <label className="flex-1 flex items-center gap-3 p-4 border-2 border-neutral-200 rounded-xl cursor-pointer hover:border-primary transition-all">
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="public"
+                        checked={formData.visibility === 'public'}
+                        onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+                        className="w-5 h-5 text-primary focus:ring-primary"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">Public</div>
+                        <div className="text-sm text-neutral-600">Everyone can see this recipe</div>
+                      </div>
+                    </label>
+                    <label className="flex-1 flex items-center gap-3 p-4 border-2 border-neutral-200 rounded-xl cursor-pointer hover:border-primary transition-all">
+                      <input
+                        type="radio"
+                        name="visibility"
+                        value="private"
+                        checked={formData.visibility === 'private'}
+                        onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+                        className="w-5 h-5 text-primary focus:ring-primary"
+                      />
+                      <div className="flex-1">
+                        <div className="font-medium">Private</div>
+                        <div className="text-sm text-neutral-600">Only you can see this recipe</div>
+                      </div>
+                    </label>
+                  </div>
                 </div>
 
                 <div className="p-6 bg-neutral-50 rounded-xl border border-neutral-200">
