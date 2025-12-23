@@ -17,7 +17,8 @@ import {
   Settings,
   Popcorn,
   ClipboardList,
-  History
+  History,
+  ChefHat
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getAvatarUrl } from '../../lib/users'
@@ -33,6 +34,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navItems = [
     { path: '/feed', icon: Home, label: 'Feed', badge: null },
     { path: '/map', icon: Map, label: 'Map', badge: null },
+    { path: '/recipes', icon: ChefHat, label: 'Recipes', badge: null },
     { path: '/requests', icon: ClipboardList, label: 'Requests', badge: null },
     { path: '/history', icon: History, label: 'History', badge: null },
     { path: '/bookmarks', icon: Bookmark, label: 'Bookmarks', badge: null },

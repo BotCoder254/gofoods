@@ -387,6 +387,7 @@ gofoods/
 - [x] Real-time Messaging
 - [x] Bookmarks System
 - [x] Request Management
+- [x]Recipe Sharing
 - [x] Live Location Tracking
 - [x] Safety Share (Trip Sharing)
 - [x] Delivery History & Route Replay
@@ -400,7 +401,6 @@ gofoods/
 - [ ] Push Notifications
 - [ ] Advanced Search & Filters
 - [ ] Social Features (Follow, Like, Comment)
-- [ ] Recipe Sharing
 - [ ] Meal Planning
 - [ ] Dietary Preferences & Filters
 - [ ] Multi-language Support
