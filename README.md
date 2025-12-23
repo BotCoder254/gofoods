@@ -94,6 +94,16 @@
       <p align="center">Create Recipes<b></b></p>
     </td>
   </tr>
+  <tr>
+    <td width="50%">
+      <img src="media/Screenshot From 2025-12-23 03-48-45.png" alt="Create Account" />
+      <p align="center"><b>Recipe Detail-Page</b></p>
+    </td>
+    <td width="50%">
+      <img src="" alt="" />
+      <p align="center"><b></b></p>
+    </td>
+  </tr>
 </table>
 
 </div>
