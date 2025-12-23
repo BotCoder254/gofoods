@@ -27,8 +27,8 @@ const DeliveryHistory = () => {
     enabled: !!user?.$id
   })
 
-  const completedReceived = receivedRequests?.documents?.filter(r => r.status === 'completed') || []
-  const completedProvided = providedRequests?.documents?.filter(r => r.status === 'completed') || []
+  const completedReceived = receivedRequests?.documents?.filter(r => r.status === 'collected' && r.completedAt) || []
+  const completedProvided = providedRequests?.documents?.filter(r => r.status === 'collected' && r.completedAt) || []
 
   const activeRequests = activeTab === 'received' ? completedReceived : completedProvided
   const isLoading = activeTab === 'received' ? loadingReceived : loadingProvided
@@ -129,7 +129,11 @@ const RequestHistoryCard = ({ request, index, isProvider }) => {
     enabled: !!(isProvider ? request.requesterId : request.ownerId)
   })
 
-  const hasRoutePath = request.routePath && request.routePath.length > 0
+  const hasRoutePath = request.routePath && request.routePath !== '[]' && (
+    typeof request.routePath === 'string' 
+      ? JSON.parse(request.routePath).length > 0 
+      : request.routePath.length > 0
+  )
 
   return (
     <motion.div

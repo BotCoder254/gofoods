@@ -191,22 +191,21 @@ export const updateHandoffPoint = async (requestId, handoffPoint) => {
   }
 }
 
-export const confirmCompletion = async (requestId, data) => {
+export const confirmCompletion = async (requestId, data = {}) => {
   try {
+    // First get the current request to preserve required fields
+    const currentRequest = await databases.getDocument(DATABASE_ID, REQUESTS_COLLECTION_ID, requestId)
+    
     const updateData = {
-      status: 'completed'
+      status: 'collected',
+      completedAt: new Date().toISOString(),
+      shareEnabled: currentRequest.shareEnabled || false,
+      routePath: currentRequest.routePath || '[]'
     }
     
-    // Only add fields if they exist in schema
     if (data.rating) updateData.rating = data.rating
     if (data.feedback) updateData.feedback = data.feedback
-    
-    // Try to add confirmedAt if attribute exists
-    try {
-      updateData.confirmedAt = new Date().toISOString()
-    } catch (e) {
-      console.log('confirmedAt attribute not available')
-    }
+    if (data.confirmedAt) updateData.confirmedAt = data.confirmedAt
     
     return await databases.updateDocument(
       DATABASE_ID,

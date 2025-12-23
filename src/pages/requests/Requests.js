@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getRequestsByOwner, getRequestsByUser, updateRequestStatus } from '../../lib/requests'
+import { getRequestsByOwner, getRequestsByUser, updateRequestStatus, confirmCompletion } from '../../lib/requests'
 import { getFoodItemById, updateFoodItem } from '../../lib/foodItems'
 import { useAuth } from '../../context/AuthContext'
 import { Check, X, Clock, Package, MessageSquare, Navigation2, MapPin } from 'lucide-react'
@@ -71,12 +71,16 @@ const Requests = () => {
     })
   }
 
-  const handleCollected = (request) => {
-    updateStatusMutation.mutate({
-      requestId: request.$id,
-      status: 'collected',
-      foodItemId: request.foodItemId
-    })
+  const handleCollected = async (request) => {
+    try {
+      await confirmCompletion(request.$id, {})
+      await updateFoodItem(request.foodItemId, { status: 'completed' })
+      queryClient.invalidateQueries(['requests'])
+      queryClient.invalidateQueries(['foodItems'])
+      toast.success('Request marked as completed!')
+    } catch (error) {
+      toast.error(error.message || 'Failed to mark as completed')
+    }
   }
 
   const incoming = incomingRequests?.documents || []
